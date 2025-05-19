@@ -25,9 +25,9 @@ WORKDIR /app
 
 # Instalar pacotes necessários
 RUN apk add --no-cache \
-    postgresql-client \
-    bash \
-    cron
+  postgresql-client \
+  bash \
+  cronie
 
 # Copiar a aplicação compilada
 COPY --from=builder /app/node_modules ./node_modules
