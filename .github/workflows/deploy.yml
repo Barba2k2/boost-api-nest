@@ -1,0 +1,122 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create env file
+        run: |
+          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" > .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          echo "DATABASE_URL=postgresql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@postgres:5432/${{ secrets.DATABASE_NAME }}?schema=public" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
+      - name: Transfer files to VPS and setup backup
+        run: |
+          # Criar o diretório de backup no servidor
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'mkdir -p /boost_api/backups'
+
+          # Transferir todos os arquivos
+          scp -r ./* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/boost_api/
+          scp .env ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/boost_api/
+
+          # Configurar permissões e backup
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+            cd /boost_api
+
+            # Dar permissões de execução para os scripts
+            chmod +x scripts/db_backup.sh scripts/db_restore.sh scripts/setup_backup_cron.sh
+
+            # Configurar o cron job para backups diários
+            bash scripts/setup_backup_cron.sh
+          '
+
+      - name: Setup SSH with keepalive
+        run: |
+          mkdir -p ~/.ssh/
+          echo "Host *" > ~/.ssh/config
+          echo "  ServerAliveInterval 60" >> ~/.ssh/config
+          echo "  ServerAliveCountMax 10" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Stop and clean containers
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+            cd /boost_api
+            echo "Stopping containers without removing volumes..."
+            docker-compose down
+            docker rm -f boost_api || true
+            echo "Cleaning up networks..."
+            docker network rm boost_api_default || true
+            docker system prune -f --filter "label!=data"
+          '
+
+      - name: Build and start containers
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+            cd /boost_api
+            echo "Building and starting containers..."
+            docker-compose up -d --build --force-recreate
+          '
+
+      - name: Verify deployment
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+            cd /boost_api
+            echo "Waiting for services to initialize..."
+            sleep 15
+            echo "Container status:"
+            docker ps -a
+            echo "API Logs:"
+            docker logs boost_api
+            echo "Database Logs:"
+            docker logs boost_db
+          '
+
+      - name: Verify deployment and run initial backup
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+            cd /boost_api
+
+            echo "Checking container status..."
+            docker ps -a
+
+            echo "Checking API container specifically..."
+            if ! docker ps | grep -q boost_api; then
+              echo "API container is not running"
+              exit 1
+            fi
+
+            echo "Checking DB container..."
+            if ! docker ps | grep -q boost_db; then
+              echo "Database container is not running"
+              exit 1
+            fi
+
+            echo "Deployment successful!"
+
+            # Executar o backup inicial
+            echo "Running initial database backup..."
+            sleep 30
+            bash scripts/db_backup.sh
+
+            echo "Backup files in directory:"
+            ls -la backups/
+          '
