@@ -1,24 +1,24 @@
 services:
-  # api:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: boost_api
-  #   depends_on:
-  #     postgres:
-  #       condition: service_started
-  #   environment:
-  #     - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}?schema=public
-  #     - JWT_SECRET=${JWT_SECRET}
-  #     - PORT=3000
-  #   ports:
-  #     - "8086:3000"
-  #   volumes:
-  #     - ./.env:/app/.env
-  #     - ./backups:/app/backups
-  #   networks:
-  #     - boost_api_default
-  #   restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: boost_api
+    depends_on:
+      postgres:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=3000
+    ports:
+      - "8086:3000"
+    volumes:
+      - ./.env:/app/.env
+      - ./backups:/app/backups
+    networks:
+      - boost_api_default
+    restart: unless-stopped
 
   postgres:
     image: postgres:15
