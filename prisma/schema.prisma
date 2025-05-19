@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  nickname     String    @unique
+  password     String
+  role         String
+  status       Boolean   @default(false)
+  lastLogin    DateTime? @map("last_login")
+  refreshToken String?   @map("refresh_token")
+  webToken     String?   @map("web_token")
+  windowsToken String?   @map("windows_token")
+  fullName     String?   @map("full_name")
+  email        String?
+  phone        String?
+  
+  // Relações
+  streamer     Streamer?
+
+  @@map("users")
+}
+
+model Streamer {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique @map("user_id")
+  points         Int       @default(0)
+  platforms      String[]
+  usualStartTime String?   @map("usual_start_time")
+  usualEndTime   String?   @map("usual_end_time")
+  streamDays     String[]  @map("stream_days")
+  
+  // Relações
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialMedia    SocialMedia?
+  scores         Score[]
+
+  @@map("streamers")
+}
+
+model SocialMedia {
+  id              Int      @id @default(autoincrement())
+  streamerId      Int      @unique @map("streamer_id")
+  twitchChannel   String?  @map("twitch_channel")
+  youtubeChannel  String?  @map("youtube_channel")
+  instagramHandle String?  @map("instagram_handle")
+  tiktokHandle    String?  @map("tiktok_handle")
+  facebookPage    String?  @map("facebook_page")
+  
+  // Relações
+  streamer        Streamer @relation(fields: [streamerId], references: [id], onDelete: Cascade)
+
+  @@map("social_media")
+}
+
+model Schedule {
+  id          Int      @id @default(autoincrement())
+  streamerUrl String   @map("streamer_url")
+  date        DateTime
+  startTime   String   @map("start_time")
+  endTime     String   @map("end_time")
+
+  @@map("schedules")
+}
+
+model Score {
+  id         Int      @id @default(autoincrement())
+  streamerId Int      @map("streamer_id")
+  date       DateTime
+  hour       Int
+  minute     Int
+  points     Int
+  
+  // Relações
+  streamer   Streamer @relation(fields: [streamerId], references: [id])
+
+  @@unique([streamerId, date, hour, minute])
+  @@map("scores")
+}
