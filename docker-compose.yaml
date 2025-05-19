@@ -37,7 +37,7 @@ services:
       - boost_api_default
     restart: unless-stopped
     labels:
-      - "data=true" # Label the container to protect from prune operations
+      - "data=true"
 
 networks:
   boost_api_default:
@@ -46,5 +46,3 @@ networks:
 volumes:
   postgres_data:
     name: boost_api_postgres_data
-    # External ensures the volume persists even if all containers are removed
-    external: false  # Set to true after first creation if you want to protect it completely
