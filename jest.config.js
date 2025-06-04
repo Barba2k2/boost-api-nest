@@ -15,7 +15,7 @@ module.exports = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   // Configuração para suportar path mappings
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@domain/(.*)$': '<rootDir>/domain/$1',
     '^@application/(.*)$': '<rootDir>/application/$1',
     '^@infrastructure/(.*)$': '<rootDir>/infrastructure/$1',
