@@ -8,6 +8,7 @@ import { AuthModule } from './application/auth.module';
 import { StreamerModule } from './application/streamer.module';
 import { UserModule } from './application/user.module';
 import { WebsocketsModule } from './application/websockets.module';
+import { CacheRedisModule } from './infrastructure/cache/cache.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { PrismaModule } from './prisma/prisma.module';
 
     // Módulos da aplicação
     PrismaModule,
+    CacheRedisModule,
     UserModule,
     StreamerModule,
     AuthModule,
