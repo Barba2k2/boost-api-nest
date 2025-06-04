@@ -1,0 +1,143 @@
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from '@application/ports/repositories/user.repository.interface';
+import { User, UserRole } from '@domain/entities/user.entity';
+import { UnauthorizedException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import * as bcrypt from 'bcrypt';
+import {
+  ValidateUserCommand,
+  ValidateUserUseCase,
+} from './validate-user.use-case';
+
+// Mock do bcrypt
+jest.mock('bcrypt');
+const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+
+describe('ValidateUserUseCase', () => {
+  let useCase: ValidateUserUseCase;
+  let userRepository: jest.Mocked<IUserRepository>;
+
+  const mockUserRepository = {
+    create: jest.fn(),
+    findById: jest.fn(),
+    findByNickname: jest.fn(),
+    updateTokens: jest.fn(),
+    existsByNickname: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ValidateUserUseCase,
+        {
+          provide: USER_REPOSITORY_TOKEN,
+          useValue: mockUserRepository,
+        },
+      ],
+    }).compile();
+
+    useCase = module.get<ValidateUserUseCase>(ValidateUserUseCase);
+    userRepository = module.get(USER_REPOSITORY_TOKEN);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('execute', () => {
+    const validCommand: ValidateUserCommand = {
+      nickname: 'testuser',
+      password: 'plainpassword',
+    };
+
+    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+
+    it('deve validar usuário com credenciais corretas', async () => {
+      // Arrange
+      userRepository.findByNickname.mockResolvedValue(mockUser);
+      mockedBcrypt.compare.mockResolvedValue(true as never);
+
+      // Act
+      const result = await useCase.execute(validCommand);
+
+      // Assert
+      expect(userRepository.findByNickname).toHaveBeenCalledWith('testuser');
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'plainpassword',
+        'hashedpassword',
+      );
+      expect(result).toEqual(mockUser);
+    });
+
+    it('deve lançar UnauthorizedException quando usuário não existe', async () => {
+      // Arrange
+      userRepository.findByNickname.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(useCase.execute(validCommand)).rejects.toThrow(
+        new UnauthorizedException('Usuário não encontrado ou senha inválida'),
+      );
+
+      expect(userRepository.findByNickname).toHaveBeenCalledWith('testuser');
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar UnauthorizedException quando senha está incorreta', async () => {
+      // Arrange
+      userRepository.findByNickname.mockResolvedValue(mockUser);
+      mockedBcrypt.compare.mockResolvedValue(false as never);
+
+      // Act & Assert
+      await expect(useCase.execute(validCommand)).rejects.toThrow(
+        new UnauthorizedException('Usuário não encontrado ou senha inválida'),
+      );
+
+      expect(userRepository.findByNickname).toHaveBeenCalledWith('testuser');
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'plainpassword',
+        'hashedpassword',
+      );
+    });
+
+    it('deve validar diferentes tipos de usuário', async () => {
+      // Arrange - Admin User
+      const adminUser = new User(1, 'admin', 'hashedpassword', UserRole.ADMIN);
+      userRepository.findByNickname.mockResolvedValue(adminUser);
+      mockedBcrypt.compare.mockResolvedValue(true as never);
+
+      // Act
+      const result = await useCase.execute({
+        nickname: 'admin',
+        password: 'plainpassword',
+      });
+
+      // Assert
+      expect(result).toEqual(adminUser);
+      expect(result.isAdmin()).toBe(true);
+    });
+
+    it('deve validar usuário assistant', async () => {
+      // Arrange - Assistant User
+      const assistantUser = new User(
+        1,
+        'assistant',
+        'hashedpassword',
+        UserRole.ASSISTANT,
+      );
+      userRepository.findByNickname.mockResolvedValue(assistantUser);
+      mockedBcrypt.compare.mockResolvedValue(true as never);
+
+      // Act
+      const result = await useCase.execute({
+        nickname: 'assistant',
+        password: 'plainpassword',
+      });
+
+      // Assert
+      expect(result).toEqual(assistantUser);
+      expect(result.isAssistant()).toBe(true);
+    });
+  });
+});
