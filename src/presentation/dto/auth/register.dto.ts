@@ -1,17 +1,12 @@
+import { UserRole } from '@domain/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsEnum,
   IsNotEmpty,
   IsString,
-  MinLength,
   Matches,
-  IsEnum,
+  MinLength,
 } from 'class-validator';
-
-export enum UserRole {
-  ADMIN = 'admin',
-  USER = 'user',
-  STREAMER = 'streamer',
-}
 
 export class RegisterDto {
   @ApiProperty({
