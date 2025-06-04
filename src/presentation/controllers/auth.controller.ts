@@ -3,7 +3,15 @@ import { RefreshTokenUseCase } from '@application/use-cases/auth/refresh-token.u
 import { RegisterUserUseCase } from '@application/use-cases/auth/register-user.use-case';
 import { ValidateUserUseCase } from '@application/use-cases/auth/validate-user.use-case';
 import { UpdateUserTokensUseCase } from '@application/use-cases/user/update-user-tokens.use-case';
-import { Body, Controller, Param, ParseIntPipe, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  ParseIntPipe,
+  Post,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ConfirmLoginDto } from '@presentation/dto/auth/confirm-login.dto';
 import { LoginDto } from '@presentation/dto/auth/login.dto';
@@ -11,6 +19,11 @@ import { RefreshTokenDto } from '@presentation/dto/auth/refresh-token.dto';
 import { RegisterDto } from '@presentation/dto/auth/register.dto';
 import { TokenResponseDto } from '@presentation/dto/auth/token-response.dto';
 import { UserResponseDto } from '@presentation/dto/user/user-response.dto';
+import {
+  RateLimit,
+  RateLimitInterceptor,
+} from '../../infrastructure/cache/interceptors/rate-limit.interceptor';
+import { Public } from '../auth/decorators/public.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -24,6 +37,9 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Public()
+  @UseInterceptors(RateLimitInterceptor)
+  @RateLimit({ type: 'create' })
   @ApiOperation({ summary: 'Registrar um novo usuário' })
   @ApiResponse({
     status: 201,
@@ -42,6 +58,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @Public()
+  @UseInterceptors(RateLimitInterceptor)
+  @RateLimit({ type: 'login' })
   @ApiOperation({ summary: 'Fazer login' })
   @ApiResponse({
     status: 200,
@@ -49,7 +68,10 @@ export class AuthController {
     type: TokenResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Credenciais inválidas.' })
-  async login(@Body() loginDto: LoginDto): Promise<TokenResponseDto> {
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req: any,
+  ): Promise<TokenResponseDto> {
     // Validar usuário
     const user = await this.validateUserUseCase.execute({
       nickname: loginDto.nickname,
@@ -68,6 +90,7 @@ export class AuthController {
   }
 
   @Post('confirm-login/:id')
+  @Public()
   @ApiOperation({ summary: 'Confirmar login e obter tokens completos' })
   @ApiResponse({
     status: 200,
@@ -96,6 +119,7 @@ export class AuthController {
   }
 
   @Post('refresh/:id')
+  @Public()
   @ApiOperation({ summary: 'Renovar token de acesso' })
   @ApiResponse({
     status: 200,

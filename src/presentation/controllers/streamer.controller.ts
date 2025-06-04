@@ -9,10 +9,15 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateStreamerDto } from '@presentation/dto/streamer/create-streamer.dto';
 import { StreamerResponseDto } from '@presentation/dto/streamer/streamer-response.dto';
+import {
+  CacheInterceptor,
+  CacheResult,
+} from '../../infrastructure/cache/interceptors/cache.interceptor';
 
 @ApiTags('streamers')
 @Controller('streamers')
@@ -44,6 +49,8 @@ export class StreamerController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
+  @CacheResult('streamers:all', 1800) // Cache por 30 minutos
   @ApiOperation({ summary: 'Buscar todos os streamers' })
   @ApiResponse({
     status: 200,

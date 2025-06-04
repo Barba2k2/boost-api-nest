@@ -1,19 +1,28 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Patch,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserUseCase } from '@application/use-cases/user/create-user.use-case';
 import { GetUserByIdUseCase } from '@application/use-cases/user/get-user-by-id.use-case';
 import { UpdateUserTokensUseCase } from '@application/use-cases/user/update-user-tokens.use-case';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from '@presentation/dto/user/create-user.dto';
 import { UpdateTokensDto } from '@presentation/dto/user/update-tokens.dto';
 import { UserResponseDto } from '@presentation/dto/user/user-response.dto';
+import {
+  CacheInterceptor,
+  CacheResult,
+} from '../../infrastructure/cache/interceptors/cache.interceptor';
+import {
+  RateLimit,
+  RateLimitInterceptor,
+} from '../../infrastructure/cache/interceptors/rate-limit.interceptor';
 
 @ApiTags('users')
 @Controller('users')
@@ -25,6 +34,8 @@ export class UserController {
   ) {}
 
   @Post()
+  @UseInterceptors(RateLimitInterceptor)
+  @RateLimit({ type: 'create' })
   @ApiOperation({ summary: 'Criar um novo usuário' })
   @ApiResponse({
     status: 201,
@@ -43,6 +54,8 @@ export class UserController {
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
+  @CacheResult('user', 3600) // Cache por 1 hora
   @ApiOperation({ summary: 'Buscar usuário por ID' })
   @ApiResponse({
     status: 200,
