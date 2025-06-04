@@ -2,15 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthGuard } from '@presentation/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@presentation/auth/guards/roles.guard';
+import { AuthModule } from './application/auth.module';
+import { StreamerModule } from './application/streamer.module';
+import { UserModule } from './application/user.module';
+import { WebsocketsModule } from './application/websockets.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { StreamersModule } from './streamers/streamers.module';
-import { SchedulesModule } from './schedules/schedules.module';
-import { ScoresModule } from './scores/scores.module';
-import { WebsocketsModule } from './websockets/websockets.module';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
   imports: [
@@ -28,11 +26,9 @@ import { RolesGuard } from './auth/guards/roles.guard';
 
     // Módulos da aplicação
     PrismaModule,
-    UsersModule,
+    UserModule,
+    StreamerModule,
     AuthModule,
-    StreamersModule,
-    SchedulesModule,
-    ScoresModule,
     WebsocketsModule,
   ],
   providers: [
