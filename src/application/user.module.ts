@@ -18,10 +18,11 @@ import { UserRepository } from '@infrastructure/persistence/prisma/repositories/
 import { UserController } from '@presentation/controllers/user.controller';
 
 // External Dependencies
+import { CacheRedisModule } from '../infrastructure/cache/cache.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CacheRedisModule],
   controllers: [UserController],
   providers: [
     // Use Cases
