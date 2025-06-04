@@ -13,4 +13,8 @@ export interface IScoreRepository {
   findAll(): Promise<Score[]>;
   delete(id: number): Promise<void>;
   getTotalPointsByStreamerId(streamerId: number): Promise<number>;
+  getDailyPointsByStreamerAndDate(
+    streamerId: number,
+    date: Date,
+  ): Promise<number>;
 }
