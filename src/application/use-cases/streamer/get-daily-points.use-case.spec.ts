@@ -1,9 +1,9 @@
-import { IScoreRepository } from '@application/ports/repositories/score.repository.interface';
-import { Test, TestingModule } from '@nestjs/testing';
 import {
-  GetDailyPointsUseCase,
+  IScoreRepository,
   SCORE_REPOSITORY_TOKEN,
-} from './get-daily-points.use-case';
+} from '@application/ports/repositories/score.repository.interface';
+import { Test, TestingModule } from '@nestjs/testing';
+import { GetDailyPointsUseCase } from './get-daily-points.use-case';
 
 describe('GetDailyPointsUseCase', () => {
   let useCase: GetDailyPointsUseCase;

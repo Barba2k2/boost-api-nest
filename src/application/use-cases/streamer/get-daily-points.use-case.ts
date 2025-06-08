@@ -1,7 +1,8 @@
-import { IScoreRepository } from '@application/ports/repositories/score.repository.interface';
+import {
+  IScoreRepository,
+  SCORE_REPOSITORY_TOKEN,
+} from '@application/ports/repositories/score.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
-
-export const SCORE_REPOSITORY_TOKEN = Symbol('IScoreRepository');
 
 export interface GetDailyPointsCommand {
   streamerId: number;
