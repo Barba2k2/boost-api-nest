@@ -7,8 +7,10 @@ import { Inject, Injectable } from '@nestjs/common';
 
 export interface CreateScoreCommand {
   streamerId: number;
+  date: Date;
+  hour: number;
+  minute: number;
   points: number;
-  reason: string;
 }
 
 @Injectable()
@@ -21,8 +23,10 @@ export class CreateScoreUseCase {
   async execute(command: CreateScoreCommand): Promise<Score> {
     return await this.scoreRepository.create({
       streamerId: command.streamerId,
+      date: command.date,
+      hour: command.hour,
+      minute: command.minute,
       points: command.points,
-      reason: command.reason,
     });
   }
 }
