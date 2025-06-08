@@ -10,9 +10,12 @@ export class User {
     public readonly nickname: string,
     public readonly password: string,
     public readonly role: UserRole,
+    public readonly email?: string,
+    public readonly fullName?: string,
     public readonly refreshToken?: string,
     public readonly webToken?: string,
     public readonly windowsToken?: string,
+    public readonly lastLogin?: Date,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
   ) {}

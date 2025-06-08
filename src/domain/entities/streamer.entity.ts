@@ -5,6 +5,7 @@ export class Streamer {
     public readonly points: number,
     public readonly platforms: string[],
     public readonly streamDays: string[],
+    public readonly isOnline: boolean = false,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
   ) {}
@@ -33,5 +34,18 @@ export class Streamer {
 
   public removeStreamDay(day: string): string[] {
     return this.streamDays.filter((d) => d !== day);
+  }
+
+  public setOnlineStatus(isOnline: boolean): Streamer {
+    return new Streamer(
+      this.id,
+      this.userId,
+      this.points,
+      this.platforms,
+      this.streamDays,
+      isOnline,
+      this.createdAt,
+      this.updatedAt,
+    );
   }
 }
