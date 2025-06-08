@@ -541,7 +541,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"streamerId\": :id},\n  \"points\": 10,\n  \"reason\": \"Completou stream de 2 horas\"\n}"
+              "raw": "{\n  \"streamerId\": 2,\n  \"date\": \"2025-04-29\",\n  \"hour\": 18,\n  \"minute\": 50,\n  \"points\": 1\n}"
             },
             "url": {
               "raw": "{{base_url}}/scores",
@@ -593,6 +593,293 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Relatório de Pontos por Período (Privado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scores/report/:id}?startDate=2025-01-01&endDate=2025-01-07",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "report", ":id}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-01",
+                  "description": "Data de início do período (formato: YYYY-MM-DD)"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-07",
+                  "description": "Data de fim do período (formato: YYYY-MM-DD)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pontos por Hora - Painel Admin (Privado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scores/by-hour?date=2025-01-07",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "by-hour"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-01-07",
+                  "description": "Data no formato YYYY-MM-DD (opcional)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🌐 Ranking Semanal (Público)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scores/public/weekly-ranking?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "public", "weekly-ranking"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início da semana (Segunda-feira) - Opcional, usa semana atual se não informado"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim da semana (Sábado) - Opcional, usa semana atual se não informado"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🌐 Média Semanal de Streamer (Público)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scores/public/weekly-average/:id}?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "public", "weekly-average", ":id}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início da semana (Segunda-feira) - Opcional, usa semana atual se não informado"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim da semana (Sábado) - Opcional, usa semana atual se não informado"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🌐 Pontos Diários da Semana (Público)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scores/public/daily-week?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "public", "daily-week"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início da semana (Segunda-feira) - Opcional, usa semana atual se não informado"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim da semana (Sábado) - Opcional, usa semana atual se não informado"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🌐 Relatório de Pontos por Período (Público)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scores/public/report/:id}?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "public", "report", ":id}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início do período (formato: YYYY-MM-DD)"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim do período (formato: YYYY-MM-DD)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🔒 ADMIN - Ranking Semanal (Privado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scores/admin/weekly-ranking?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "admin", "weekly-ranking"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início da semana (Segunda-feira) - Obrigatório"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim da semana (Sábado) - Obrigatório"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🔒 ADMIN - Média Semanal de Streamer (Privado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scores/admin/weekly-average/:id}?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "admin", "weekly-average", ":id}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início da semana (Segunda-feira) - Obrigatório"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim da semana (Sábado) - Obrigatório"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🔒 ADMIN - Pontos Diários da Semana (Privado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scores/admin/daily-week?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "admin", "daily-week"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início da semana (Segunda-feira) - Obrigatório"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim da semana (Sábado) - Obrigatório"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🔒 ADMIN - Resumo Completo de Período (Privado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scores/admin/period-summary?startDate=2025-01-06&endDate=2025-01-11",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "admin", "period-summary"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-01-06",
+                  "description": "Data de início do período - Obrigatório"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-01-11",
+                  "description": "Data de fim do período - Obrigatório"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -633,7 +920,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"streamerId\": 1,\n  \"points\": 5,\n  \"reason\": \"Teste de rate limit\"\n}"
+              "raw": "{\n  \"streamerId\": 2,\n  \"date\": \"2025-04-29\",\n  \"hour\": 18,\n  \"minute\": 50,\n  \"points\": 1\n}"
             },
             "url": {
               "raw": "{{base_url}}/scores",
@@ -655,7 +942,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"streamerId\": 1,\n  \"points\": 241,\n  \"reason\": \"Teste limite diário excedido\"\n}"
+              "raw": "{\n  \"streamerId\": 2,\n  \"date\": \"2025-04-29\",\n  \"hour\": 18,\n  \"minute\": 50,\n  \"points\": 241\n}"
             },
             "url": {
               "raw": "{{base_url}}/scores",
