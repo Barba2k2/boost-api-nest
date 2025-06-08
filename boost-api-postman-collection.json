@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Boost API - NestJS",
-    "description": "Collection completa da API Boost desenvolvida em NestJS. Inclui endpoints para autenticação, gerenciamento de usuários, streamers e sistema de pontuação.",
+    "description": "Collection completa da API Boost desenvolvida em NestJS. Inclui endpoints para autenticação, recuperação de senha, gerenciamento de usuários, streamers e sistema de pontuação.",
     "version": "1.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -28,6 +28,11 @@
     },
     {
       "key": "streamer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
       "value": "",
       "type": "string"
     }
@@ -184,6 +189,221 @@
                   "value": "0"
                 }
               ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔓 Recuperação de Senha",
+      "item": [
+        {
+          "name": "1. Iniciar Recuperação",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response tem success true', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response tem mensagem', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/initiate",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "initiate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Validar PIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.valid && response.token) {",
+                  "        pm.collectionVariables.set('reset_token', response.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Response tem valid boolean', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.valid).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "pm.test('Se válido, response tem token', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.valid) {",
+                  "        pm.expect(response.token).to.be.a('string');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"pin\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/validate-pin",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "validate-pin"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Completar Reset",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response tem success true', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response tem mensagem de sucesso', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('sucesso');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"resetToken\": \"{{reset_token}}\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"NovaSenh@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/complete",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "complete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "❌ Validar PIN Inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"pin\": \"999999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/validate-pin",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "validate-pin"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "❌ Reset com Token Inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"resetToken\": \"token-invalido\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"NovaSenh@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/complete",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "complete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "❌ Reset com Senhas Diferentes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"resetToken\": \"{{reset_token}}\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"SenhaDiferente@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/complete",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "complete"]
             }
           },
           "response": []
