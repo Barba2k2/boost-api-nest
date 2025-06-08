@@ -15,14 +15,16 @@ model User {
   nickname     String    @unique
   password     String
   role         String
+  email        String    @unique
+  fullName     String    @map("full_name")
   status       Boolean   @default(false)
   lastLogin    DateTime? @map("last_login")
   refreshToken String?   @map("refresh_token")
   webToken     String?   @map("web_token")
   windowsToken String?   @map("windows_token")
-  fullName     String?   @map("full_name")
-  email        String?
   phone        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
   
   // Relações
   streamer     Streamer?
@@ -38,6 +40,7 @@ model Streamer {
   usualStartTime String?   @map("usual_start_time")
   usualEndTime   String?   @map("usual_end_time")
   streamDays     String[]  @map("stream_days")
+  isOnline       Boolean   @default(false) @map("is_online")
   
   // Relações
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
