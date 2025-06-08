@@ -1,11 +1,11 @@
-import { IScoreRepository } from '@application/ports/repositories/score.repository.interface';
+import {
+  IScoreRepository,
+  SCORE_REPOSITORY_TOKEN,
+} from '@application/ports/repositories/score.repository.interface';
 import { Score } from '@domain/entities/score.entity';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  CreateScoreUseCase,
-  SCORE_REPOSITORY_TOKEN,
-} from './create-score.use-case';
+import { CreateScoreUseCase } from './create-score.use-case';
 
 describe('CreateScoreUseCase', () => {
   let useCase: CreateScoreUseCase;
