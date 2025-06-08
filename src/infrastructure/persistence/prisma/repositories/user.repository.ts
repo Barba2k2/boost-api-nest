@@ -17,6 +17,8 @@ export class UserRepository implements IUserRepository {
         nickname: userData.nickname,
         password: userData.password,
         role: userData.role,
+        email: userData.email,
+        fullName: userData.fullName,
       },
     });
 
@@ -39,6 +41,24 @@ export class UserRepository implements IUserRepository {
     return user ? this.toDomain(user) : null;
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.prisma.user.findFirst({
+      where: { email },
+    });
+
+    return user ? this.toDomain(user) : null;
+  }
+
+  async findByEmailOrNickname(emailOrNickname: string): Promise<User | null> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: emailOrNickname }, { nickname: emailOrNickname }],
+      },
+    });
+
+    return user ? this.toDomain(user) : null;
+  }
+
   async updateTokens(id: number, tokens: UpdateTokensData): Promise<User> {
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -52,9 +72,56 @@ export class UserRepository implements IUserRepository {
     return this.toDomain(updatedUser);
   }
 
+  async updateLastLogin(id: number): Promise<User> {
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        lastLogin: new Date(),
+      },
+    });
+
+    return this.toDomain(updatedUser);
+  }
+
+  async findUsersWithLogin(limit: number, offset: number): Promise<User[]> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        lastLogin: {
+          not: null,
+        },
+      },
+      orderBy: {
+        lastLogin: 'desc',
+      },
+      take: limit,
+      skip: offset,
+    });
+
+    return users.map((user) => this.toDomain(user));
+  }
+
+  async countUsersWithLogin(): Promise<number> {
+    return await this.prisma.user.count({
+      where: {
+        lastLogin: {
+          not: null,
+        },
+      },
+    });
+  }
+
   async existsByNickname(nickname: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { nickname },
+      select: { id: true },
+    });
+
+    return !!user;
+  }
+
+  async existsByEmail(email: string): Promise<boolean> {
+    const user = await this.prisma.user.findFirst({
+      where: { email },
       select: { id: true },
     });
 
@@ -67,9 +134,12 @@ export class UserRepository implements IUserRepository {
       prismaUser.nickname,
       prismaUser.password,
       prismaUser.role as UserRole,
+      prismaUser.email,
+      prismaUser.fullName,
       prismaUser.refreshToken,
       prismaUser.webToken,
       prismaUser.windowsToken,
+      prismaUser.lastLogin,
       prismaUser.createdAt,
       prismaUser.updatedAt,
     );

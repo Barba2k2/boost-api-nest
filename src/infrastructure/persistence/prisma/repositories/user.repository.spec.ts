@@ -50,7 +50,9 @@ describe('UserRepository', () => {
     it('deve criar um usuário com sucesso', async () => {
       // Arrange
       const userData = {
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'hashedpassword',
         role: UserRole.USER,
       };
@@ -62,7 +64,9 @@ describe('UserRepository', () => {
       // Assert
       expect(mockPrismaService.user.create).toHaveBeenCalledWith({
         data: {
+          fullName: 'Test User',
           nickname: 'testuser',
+          email: 'test@example.com',
           password: 'hashedpassword',
           role: UserRole.USER,
         },
@@ -75,7 +79,9 @@ describe('UserRepository', () => {
     it('deve criar um usuário com role ADMIN', async () => {
       // Arrange
       const userData = {
+        fullName: 'Admin User',
         nickname: 'admin',
+        email: 'admin@example.com',
         password: 'hashedpassword',
         role: UserRole.ADMIN,
       };
@@ -231,7 +237,9 @@ describe('UserRepository', () => {
     it('deve converter dados do Prisma para entidade de domínio corretamente', async () => {
       // Arrange
       const userData = {
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'hashedpassword',
         role: UserRole.USER,
       };

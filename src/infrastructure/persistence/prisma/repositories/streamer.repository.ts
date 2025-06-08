@@ -52,6 +52,7 @@ export class StreamerRepository implements IStreamerRepository {
         points: data.points,
         platforms: data.platforms,
         streamDays: data.streamDays,
+        isOnline: data.isOnline,
       },
     });
 
@@ -77,6 +78,27 @@ export class StreamerRepository implements IStreamerRepository {
     return this.toDomain(updatedStreamer);
   }
 
+  async updateOnlineStatus(id: number, isOnline: boolean): Promise<Streamer> {
+    const updatedStreamer = await this.prisma.streamer.update({
+      where: { id },
+      data: {
+        isOnline,
+      },
+    });
+
+    return this.toDomain(updatedStreamer);
+  }
+
+  async findOnlineStreamers(): Promise<Streamer[]> {
+    const streamers = await this.prisma.streamer.findMany({
+      where: {
+        isOnline: true,
+      },
+    });
+
+    return streamers.map((streamer) => this.toDomain(streamer));
+  }
+
   private toDomain(prismaStreamer: any): Streamer {
     return new Streamer(
       prismaStreamer.id,
@@ -84,6 +106,7 @@ export class StreamerRepository implements IStreamerRepository {
       prismaStreamer.points,
       prismaStreamer.platforms,
       prismaStreamer.streamDays,
+      prismaStreamer.isOnline || false,
       prismaStreamer.createdAt,
       prismaStreamer.updatedAt,
     );
