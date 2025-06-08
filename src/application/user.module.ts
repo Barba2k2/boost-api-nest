@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { AuthenticateUserUseCase } from './use-cases/auth/authenticate-user.use-case';
 import { CreateUserUseCase } from './use-cases/user/create-user.use-case';
 import { GetUserByIdUseCase } from './use-cases/user/get-user-by-id.use-case';
+import { UpdateLastLoginUseCase } from './use-cases/user/update-last-login.use-case';
 import { UpdateUserTokensUseCase } from './use-cases/user/update-user-tokens.use-case';
 
 // Repository Interfaces
@@ -28,6 +29,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     // Use Cases
     CreateUserUseCase,
     GetUserByIdUseCase,
+    UpdateLastLoginUseCase,
     UpdateUserTokensUseCase,
     AuthenticateUserUseCase,
 
@@ -44,6 +46,7 @@ import { PrismaModule } from '../prisma/prisma.module';
   exports: [
     CreateUserUseCase,
     GetUserByIdUseCase,
+    UpdateLastLoginUseCase,
     UpdateUserTokensUseCase,
     AuthenticateUserUseCase,
     USER_REPOSITORY_TOKEN,

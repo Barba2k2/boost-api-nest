@@ -4,6 +4,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 // Use Cases
 import { CreateStreamerUseCase } from './use-cases/streamer/create-streamer.use-case';
 import { GetAllStreamersUseCase } from './use-cases/streamer/get-all-streamers.use-case';
+import { GetOnlineStreamersUseCase } from './use-cases/streamer/get-online-streamers.use-case';
+import { UpdateStreamerOnlineStatusUseCase } from './use-cases/streamer/update-streamer-online-status.use-case';
 import { UpdateStreamerUseCase } from './use-cases/streamer/update-streamer.use-case';
 
 // Repository Tokens
@@ -15,14 +17,19 @@ import { StreamerRepository } from '@infrastructure/persistence/prisma/repositor
 // Controllers
 import { StreamerController } from '@presentation/controllers/streamer.controller';
 
+// External Dependencies
+import { CacheRedisModule } from '../infrastructure/cache/cache.module';
+
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CacheRedisModule],
   controllers: [StreamerController],
   providers: [
     // Use Cases
     CreateStreamerUseCase,
     GetAllStreamersUseCase,
+    GetOnlineStreamersUseCase,
     UpdateStreamerUseCase,
+    UpdateStreamerOnlineStatusUseCase,
 
     // Repository Implementations
     {
@@ -33,7 +40,9 @@ import { StreamerController } from '@presentation/controllers/streamer.controlle
   exports: [
     CreateStreamerUseCase,
     GetAllStreamersUseCase,
+    GetOnlineStreamersUseCase,
     UpdateStreamerUseCase,
+    UpdateStreamerOnlineStatusUseCase,
     STREAMER_REPOSITORY_TOKEN,
   ],
 })

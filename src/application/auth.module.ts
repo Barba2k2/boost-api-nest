@@ -5,12 +5,15 @@ import { PassportModule } from '@nestjs/passport';
 
 // Use Cases
 import { GenerateTokensUseCase } from './use-cases/auth/generate-tokens.use-case';
+import { GetLoginLogsUseCase } from './use-cases/auth/get-login-logs.use-case';
 import { RefreshTokenUseCase } from './use-cases/auth/refresh-token.use-case';
 import { RegisterUserUseCase } from './use-cases/auth/register-user.use-case';
+import { SendWelcomeEmailUseCase } from './use-cases/auth/send-welcome-email.use-case';
 import { ValidateUserUseCase } from './use-cases/auth/validate-user.use-case';
 
 // Casos de uso do User Module
 import { CreateUserUseCase } from './use-cases/user/create-user.use-case';
+import { UpdateLastLoginUseCase } from './use-cases/user/update-last-login.use-case';
 import { UpdateUserTokensUseCase } from './use-cases/user/update-user-tokens.use-case';
 
 // Repository Tokens
@@ -29,11 +32,15 @@ import { JwtStrategy } from '@presentation/auth/strategies/jwt.strategy';
 import { LocalStrategy } from '@presentation/auth/strategies/local.strategy';
 
 // Dependências externas
+import { EmailModule } from '@infrastructure/email/email.module';
+import { CacheRedisModule } from '../infrastructure/cache/cache.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
     PrismaModule,
+    EmailModule,
+    CacheRedisModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -51,9 +58,12 @@ import { PrismaModule } from '../prisma/prisma.module';
     ValidateUserUseCase,
     GenerateTokensUseCase,
     RefreshTokenUseCase,
+    GetLoginLogsUseCase,
+    SendWelcomeEmailUseCase,
 
     // User Use Cases (dependências)
     CreateUserUseCase,
+    UpdateLastLoginUseCase,
     UpdateUserTokensUseCase,
 
     // Repository Implementations
