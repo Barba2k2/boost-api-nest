@@ -28,6 +28,8 @@ describe('GenerateTokensUseCase', () => {
     update: jest.fn(),
     delete: jest.fn(),
     addPoints: jest.fn(),
+    updateOnlineStatus: jest.fn(),
+    findOnlineStreamers: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -55,8 +57,21 @@ describe('GenerateTokensUseCase', () => {
   });
 
   describe('execute', () => {
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
-    const mockStreamer = new Streamer(1, 1, 100, ['twitch'], ['monday']);
+    const mockUser = new User(
+      1,
+      'testuser',
+      'hashedpassword',
+      UserRole.USER,
+      'test@example.com',
+      'Test User',
+      undefined,
+      undefined,
+      undefined,
+      new Date(),
+      new Date(),
+      new Date(),
+    );
+    const mockStreamer = new Streamer(1, 1, 100, ['twitch'], ['monday'], false);
 
     const validCommand: GenerateTokensCommand = {
       user: mockUser,
@@ -110,7 +125,20 @@ describe('GenerateTokensUseCase', () => {
 
     it('deve gerar tokens para usuário ADMIN', async () => {
       // Arrange
-      const adminUser = new User(2, 'admin', 'hash', UserRole.ADMIN);
+      const adminUser = new User(
+        2,
+        'admin',
+        'hash',
+        UserRole.ADMIN,
+        'admin@example.com',
+        'Admin User',
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
       const adminCommand = { user: adminUser };
 
       streamerRepository.findByUserId.mockResolvedValue(null);
@@ -141,6 +169,14 @@ describe('GenerateTokensUseCase', () => {
         'assistant',
         'hash',
         UserRole.ASSISTANT,
+        'assistant@example.com',
+        'Assistant User',
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
       const assistantCommand = { user: assistantUser };
 
