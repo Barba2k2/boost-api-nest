@@ -1,6 +1,8 @@
 import {
   CreateScoreData,
   IScoreRepository,
+  ScoreByHourData,
+  ScoreReportData,
 } from '@application/ports/repositories/score.repository.interface';
 import { Score } from '@domain/entities/score.entity';
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -13,17 +15,21 @@ export class ScoreRepository implements IScoreRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(scoreData: CreateScoreData): Promise<Score> {
-    const now = new Date();
+    // Converter a data string para Date object se necessário
+    const scoreDate = new Date(scoreData.date);
 
     // 1. Verificar se já existe score nos últimos 6 minutos para este streamer
-    await this.validateNoDuplicateInLastSixMinutes(scoreData.streamerId, now);
+    await this.validateNoDuplicateInLastSixMinutes(
+      scoreData.streamerId,
+      scoreDate,
+    );
 
     // 2. Só validar limite para pontos positivos
     if (scoreData.points > 0) {
       // Verificar se adicionar estes pontos ultrapassará o limite diário
       const currentDailyPoints = await this.getDailyPointsByStreamerAndDate(
         scoreData.streamerId,
-        now,
+        scoreDate,
       );
 
       const newTotal = currentDailyPoints + scoreData.points;
@@ -40,14 +46,14 @@ export class ScoreRepository implements IScoreRepository {
     const createdScore = await this.prisma.score.create({
       data: {
         streamerId: scoreData.streamerId,
-        date: now,
-        hour: now.getHours(),
-        minute: now.getMinutes(),
+        date: scoreDate,
+        hour: scoreData.hour,
+        minute: scoreData.minute,
         points: scoreData.points,
       },
     });
 
-    return this.toDomain(createdScore, scoreData.reason);
+    return this.toDomain(createdScore);
   }
 
   async findById(id: number): Promise<Score | null> {
@@ -55,7 +61,7 @@ export class ScoreRepository implements IScoreRepository {
       where: { id },
     });
 
-    return score ? this.toDomain(score, 'Score record') : null;
+    return score ? this.toDomain(score) : null;
   }
 
   async findByStreamerId(streamerId: number): Promise<Score[]> {
@@ -64,7 +70,7 @@ export class ScoreRepository implements IScoreRepository {
       orderBy: { date: 'desc' },
     });
 
-    return scores.map((score) => this.toDomain(score, 'Score record'));
+    return scores.map((score) => this.toDomain(score));
   }
 
   async findAll(): Promise<Score[]> {
@@ -72,7 +78,7 @@ export class ScoreRepository implements IScoreRepository {
       orderBy: { date: 'desc' },
     });
 
-    return scores.map((score) => this.toDomain(score, 'Score record'));
+    return scores.map((score) => this.toDomain(score));
   }
 
   async delete(id: number): Promise<void> {
@@ -118,12 +124,111 @@ export class ScoreRepository implements IScoreRepository {
     return result._sum.points || 0;
   }
 
-  private toDomain(prismaScore: any, reason: string): Score {
+  async getScoreReportByPeriod(
+    streamerId: number,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<ScoreReportData | null> {
+    // Buscar o streamer com informações do usuário
+    const streamer = await this.prisma.streamer.findUnique({
+      where: { id: streamerId },
+      include: { user: true },
+    });
+
+    if (!streamer) {
+      return null;
+    }
+
+    // Buscar todos os scores no período
+    const scores = await this.prisma.score.findMany({
+      where: {
+        streamerId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    // Calcular total de pontos
+    const totalPoints = scores.reduce((sum, score) => sum + score.points, 0);
+
+    return {
+      streamerId,
+      nickname: streamer.user.nickname,
+      totalPoints,
+      startDate,
+      endDate,
+      registrationDate: streamer.user.createdAt,
+      scores: scores.map((score) => ({
+        id: score.id,
+        points: score.points,
+        date: score.date,
+        hour: score.hour,
+        minute: score.minute,
+      })),
+    };
+  }
+
+  async getScoresByDateGroupedByHour(date: Date): Promise<ScoreByHourData[]> {
+    // Criar o início e fim do dia
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Buscar todos os scores do dia com informações do streamer/usuário
+    const scores = await this.prisma.score.findMany({
+      where: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      include: {
+        streamer: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: [{ streamerId: 'asc' }, { hour: 'asc' }],
+    });
+
+    // Agrupar por streamer e depois por hora
+    const groupedData = new Map<number, ScoreByHourData>();
+
+    scores.forEach((score) => {
+      const streamerId = score.streamerId;
+      const hourKey = `${score.hour}h`;
+
+      if (!groupedData.has(streamerId)) {
+        groupedData.set(streamerId, {
+          streamerId,
+          nickname: score.streamer.user.nickname,
+          pointsByHour: {},
+        });
+      }
+
+      const streamerData = groupedData.get(streamerId)!;
+
+      if (!streamerData.pointsByHour[hourKey]) {
+        streamerData.pointsByHour[hourKey] = 0;
+      }
+
+      streamerData.pointsByHour[hourKey] += score.points;
+    });
+
+    return Array.from(groupedData.values());
+  }
+
+  private toDomain(prismaScore: any): Score {
     return new Score(
       prismaScore.id,
       prismaScore.streamerId,
       prismaScore.points,
-      reason, // O schema atual não tem campo reason
       prismaScore.date,
     );
   }

@@ -14,6 +14,9 @@ describe('ScoreRepository', () => {
       delete: jest.fn(),
       aggregate: jest.fn(),
     },
+    streamer: {
+      findUnique: jest.fn(),
+    },
   };
 
   const mockPrismaScore = {
@@ -54,8 +57,10 @@ describe('ScoreRepository', () => {
       // Arrange
       const scoreData = {
         streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
         points: 5,
-        reason: 'Boa performance na stream',
       };
 
       // Mock para validação de duplicação (sem scores recentes)
@@ -103,7 +108,7 @@ describe('ScoreRepository', () => {
         data: {
           streamerId: 1,
           date: new Date('2024-01-01T10:30:00Z'),
-          hour: 7, // UTC -3 (timezone local)
+          hour: 10,
           minute: 30,
           points: 5,
         },
@@ -116,8 +121,10 @@ describe('ScoreRepository', () => {
       // Arrange
       const scoreData = {
         streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
         points: 50,
-        reason: 'Tentativa de pontuação',
       };
 
       // Mock para validação de duplicação (sem scores recentes)
@@ -140,8 +147,10 @@ describe('ScoreRepository', () => {
       // Arrange
       const scoreData = {
         streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
         points: -10,
-        reason: 'Penalidade por cancelamento',
       };
 
       // Mock para validação de duplicação (sem scores recentes)
@@ -171,7 +180,7 @@ describe('ScoreRepository', () => {
         data: {
           streamerId: 1,
           date: new Date('2024-01-01T10:30:00Z'),
-          hour: 7,
+          hour: 10,
           minute: 30,
           points: -10,
         },
@@ -183,8 +192,10 @@ describe('ScoreRepository', () => {
       // Arrange
       const scoreData = {
         streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
         points: 240,
-        reason: 'Pontuação máxima diária',
       };
 
       // Mock retornando 0 pontos acumulados
@@ -210,8 +221,10 @@ describe('ScoreRepository', () => {
       // Arrange
       const scoreData = {
         streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
         points: 5,
-        reason: 'Tentativa de score duplicado',
       };
 
       // Mock retornando score criado há 3 minutos
@@ -237,8 +250,10 @@ describe('ScoreRepository', () => {
       // Arrange
       const scoreData = {
         streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
         points: 5,
-        reason: 'Score válido após 6 minutos',
       };
 
       // Mock para validação de duplicação (sem scores recentes)
@@ -263,8 +278,10 @@ describe('ScoreRepository', () => {
       // Arrange
       const scoreData = {
         streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
         points: 5,
-        reason: 'Teste ordem de validação',
       };
 
       // Mock retornando score criado há 2 minutos (duplicação)
@@ -390,7 +407,7 @@ describe('ScoreRepository', () => {
       });
       expect(result).toBeDefined();
       expect(result!.id).toBe(1);
-      expect(result!.reason).toBe('Score record');
+      expect(result!.points).toBe(5);
     });
 
     it('deve retornar null quando score não encontrado', async () => {
