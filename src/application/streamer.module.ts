@@ -3,10 +3,11 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 // Use Cases
 import { CreateScoreUseCase } from './use-cases/streamer/create-score.use-case';
-
 import { GetAllStreamersUseCase } from './use-cases/streamer/get-all-streamers.use-case';
 import { GetDailyPointsUseCase } from './use-cases/streamer/get-daily-points.use-case';
 import { GetOnlineStreamersUseCase } from './use-cases/streamer/get-online-streamers.use-case';
+import { GetScoreReportUseCase } from './use-cases/streamer/get-score-report.use-case';
+import { GetScoresByHourUseCase } from './use-cases/streamer/get-scores-by-hour.use-case';
 import { UpdateStreamerOnlineStatusUseCase } from './use-cases/streamer/update-streamer-online-status.use-case';
 import { UpdateStreamerUseCase } from './use-cases/streamer/update-streamer.use-case';
 
@@ -35,6 +36,8 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
     UpdateStreamerUseCase,
     UpdateStreamerOnlineStatusUseCase,
     CreateScoreUseCase,
+    GetScoreReportUseCase,
+    GetScoresByHourUseCase,
     GetDailyPointsUseCase,
 
     // Repository Implementations
@@ -53,6 +56,8 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
     UpdateStreamerUseCase,
     UpdateStreamerOnlineStatusUseCase,
     CreateScoreUseCase,
+    GetScoreReportUseCase,
+    GetScoresByHourUseCase,
     GetDailyPointsUseCase,
     STREAMER_REPOSITORY_TOKEN,
     SCORE_REPOSITORY_TOKEN,
