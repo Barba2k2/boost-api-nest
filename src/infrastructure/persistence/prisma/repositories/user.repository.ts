@@ -83,6 +83,17 @@ export class UserRepository implements IUserRepository {
     return this.toDomain(updatedUser);
   }
 
+  async updatePassword(id: number, hashedPassword: string): Promise<User> {
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    return this.toDomain(updatedUser);
+  }
+
   async findUsersWithLogin(limit: number, offset: number): Promise<User[]> {
     const users = await this.prisma.user.findMany({
       where: {
