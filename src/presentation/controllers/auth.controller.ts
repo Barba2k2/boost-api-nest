@@ -7,7 +7,7 @@ import { ResetPasswordUseCase } from '@application/use-cases/auth/reset-password
 import { ValidatePasswordResetPinUseCase } from '@application/use-cases/auth/validate-password-reset-pin.use-case';
 import { ValidateUserUseCase } from '@application/use-cases/auth/validate-user.use-case';
 import { UpdateLastLoginUseCase } from '@application/use-cases/user/update-last-login.use-case';
-import { UpdateUserTokensUseCase } from '@application/use-cases/user/update-user-tokens.use-case';
+
 import { UserRole } from '@domain/entities/user.entity';
 import {
   Body,
@@ -21,7 +21,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ConfirmLoginDto } from '@presentation/dto/auth/confirm-login.dto';
 import { InitiatePasswordResetDto } from '@presentation/dto/auth/initiate-password-reset.dto';
 import { LoginLogsResponseDto } from '@presentation/dto/auth/login-logs-response.dto';
 import { LoginDto } from '@presentation/dto/auth/login.dto';
@@ -51,7 +50,6 @@ export class AuthController {
     private readonly validateUserUseCase: ValidateUserUseCase,
     private readonly generateTokensUseCase: GenerateTokensUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
-    private readonly updateUserTokensUseCase: UpdateUserTokensUseCase,
     private readonly updateLastLoginUseCase: UpdateLastLoginUseCase,
     private readonly getLoginLogsUseCase: GetLoginLogsUseCase,
     private readonly initiatePasswordResetUseCase: InitiatePasswordResetUseCase,
@@ -110,40 +108,12 @@ export class AuthController {
     // Gerar tokens
     const tokens = await this.generateTokensUseCase.execute({
       user,
-      includeRefreshToken: false,
+      includeRefreshToken: true,
     });
 
     return {
       access_token: tokens.access_token,
-    };
-  }
-
-  @Post('confirm-login/:id')
-  @Public()
-  @ApiOperation({ summary: 'Confirmar login e obter tokens completos' })
-  @ApiResponse({
-    status: 200,
-    description: 'Login confirmado com sucesso.',
-    type: TokenResponseDto,
-  })
-  @ApiResponse({ status: 401, description: 'Usuário não encontrado.' })
-  async confirmLogin(
-    @Param('id', ParseIntPipe) userId: number,
-    @Body() confirmLoginDto: ConfirmLoginDto,
-  ): Promise<TokenResponseDto> {
-    // TODO: Implementar caso de uso específico para confirmLogin
-    // Por enquanto, retornando tokens simples
-
-    // Atualizar tokens do usuário
-    await this.updateUserTokensUseCase.execute(userId, {
-      webToken: confirmLoginDto.web_token,
-      windowsToken: confirmLoginDto.windows_token,
-    });
-
-    // Retornar tokens simples por enquanto
-    return {
-      access_token: `Bearer token-placeholder`,
-      refresh_token: `Bearer refresh-token-placeholder`,
+      refresh_token: tokens.refresh_token,
     };
   }
 

@@ -4,11 +4,14 @@ import { RefreshTokenUseCase } from '@application/use-cases/auth/refresh-token.u
 import { RegisterUserUseCase } from '@application/use-cases/auth/register-user.use-case';
 import { ValidateUserUseCase } from '@application/use-cases/auth/validate-user.use-case';
 import { UpdateLastLoginUseCase } from '@application/use-cases/user/update-last-login.use-case';
-import { UpdateUserTokensUseCase } from '@application/use-cases/user/update-user-tokens.use-case';
+
+import { InitiatePasswordResetUseCase } from '@application/use-cases/auth/initiate-password-reset.use-case';
+import { ResetPasswordUseCase } from '@application/use-cases/auth/reset-password.use-case';
+import { ValidatePasswordResetPinUseCase } from '@application/use-cases/auth/validate-password-reset-pin.use-case';
 import { User, UserRole } from '@domain/entities/user.entity';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfirmLoginDto } from '@presentation/dto/auth/confirm-login.dto';
+
 import { LoginDto } from '@presentation/dto/auth/login.dto';
 import { RefreshTokenDto } from '@presentation/dto/auth/refresh-token.dto';
 import { RegisterDto } from '@presentation/dto/auth/register.dto';
@@ -22,9 +25,11 @@ describe('AuthController', () => {
   let mockValidateUserUseCase: any;
   let mockGenerateTokensUseCase: any;
   let mockRefreshTokenUseCase: any;
-  let mockUpdateUserTokensUseCase: any;
   let mockUpdateLastLoginUseCase: any;
   let mockGetLoginLogsUseCase: any;
+  let mockInitiatePasswordResetUseCase: any;
+  let mockValidatePasswordResetPinUseCase: any;
+  let mockResetPasswordUseCase: any;
 
   const mockUser = new User(
     1,
@@ -63,15 +68,23 @@ describe('AuthController', () => {
       execute: jest.fn(),
     };
 
-    mockUpdateUserTokensUseCase = {
-      execute: jest.fn(),
-    };
-
     mockUpdateLastLoginUseCase = {
       execute: jest.fn(),
     };
 
     mockGetLoginLogsUseCase = {
+      execute: jest.fn(),
+    };
+
+    mockInitiatePasswordResetUseCase = {
+      execute: jest.fn(),
+    };
+
+    mockValidatePasswordResetPinUseCase = {
+      execute: jest.fn(),
+    };
+
+    mockResetPasswordUseCase = {
       execute: jest.fn(),
     };
 
@@ -101,10 +114,7 @@ describe('AuthController', () => {
           provide: RefreshTokenUseCase,
           useValue: mockRefreshTokenUseCase,
         },
-        {
-          provide: UpdateUserTokensUseCase,
-          useValue: mockUpdateUserTokensUseCase,
-        },
+
         {
           provide: UpdateLastLoginUseCase,
           useValue: mockUpdateLastLoginUseCase,
@@ -112,6 +122,18 @@ describe('AuthController', () => {
         {
           provide: GetLoginLogsUseCase,
           useValue: mockGetLoginLogsUseCase,
+        },
+        {
+          provide: InitiatePasswordResetUseCase,
+          useValue: mockInitiatePasswordResetUseCase,
+        },
+        {
+          provide: ValidatePasswordResetPinUseCase,
+          useValue: mockValidatePasswordResetPinUseCase,
+        },
+        {
+          provide: ResetPasswordUseCase,
+          useValue: mockResetPasswordUseCase,
         },
         {
           provide: RateLimitService,
@@ -245,6 +267,7 @@ describe('AuthController', () => {
       mockUpdateLastLoginUseCase.execute.mockResolvedValue(mockUser);
       mockGenerateTokensUseCase.execute.mockResolvedValue({
         access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
       });
 
       // Act
@@ -263,11 +286,12 @@ describe('AuthController', () => {
 
       expect(mockGenerateTokensUseCase.execute).toHaveBeenCalledWith({
         user: mockUser,
-        includeRefreshToken: false,
+        includeRefreshToken: true,
       });
 
       expect(result).toEqual({
         access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
       });
     });
 
@@ -294,69 +318,6 @@ describe('AuthController', () => {
 
       expect(mockUpdateLastLoginUseCase.execute).not.toHaveBeenCalled();
       expect(mockGenerateTokensUseCase.execute).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('confirmLogin', () => {
-    it('deve confirmar login com sucesso', async () => {
-      // Arrange
-      const userId = 1;
-      const confirmLoginDto: ConfirmLoginDto = {
-        web_token: 'web-token-123',
-        windows_token: 'windows-token-123',
-      };
-
-      const updatedUser = new User(
-        1,
-        'testuser',
-        'hashedpassword',
-        UserRole.USER,
-        'test@example.com',
-        'Test User',
-        undefined,
-        'web-token-123',
-        'windows-token-123',
-        new Date(),
-        new Date(),
-        new Date(),
-      );
-      mockUpdateUserTokensUseCase.execute.mockResolvedValue(updatedUser);
-
-      // Act
-      const result = await controller.confirmLogin(userId, confirmLoginDto);
-
-      // Assert
-      expect(mockUpdateUserTokensUseCase.execute).toHaveBeenCalledWith(userId, {
-        webToken: 'web-token-123',
-        windowsToken: 'windows-token-123',
-      });
-
-      expect(result).toEqual({
-        access_token: 'Bearer token-placeholder',
-        refresh_token: 'Bearer refresh-token-placeholder',
-      });
-    });
-
-    it('deve propagar erro de atualização', async () => {
-      // Arrange
-      const userId = 999;
-      const confirmLoginDto: ConfirmLoginDto = {
-        web_token: 'web-token-123',
-        windows_token: 'windows-token-123',
-      };
-
-      const error = new Error('Usuário não encontrado');
-      mockUpdateUserTokensUseCase.execute.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(
-        controller.confirmLogin(userId, confirmLoginDto),
-      ).rejects.toThrow('Usuário não encontrado');
-
-      expect(mockUpdateUserTokensUseCase.execute).toHaveBeenCalledWith(userId, {
-        webToken: 'web-token-123',
-        windowsToken: 'windows-token-123',
-      });
     });
   });
 

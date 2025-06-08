@@ -1,4 +1,3 @@
-import { CreateStreamerUseCase } from '@application/use-cases/streamer/create-streamer.use-case';
 import { GetAllStreamersUseCase } from '@application/use-cases/streamer/get-all-streamers.use-case';
 import { GetOnlineStreamersUseCase } from '@application/use-cases/streamer/get-online-streamers.use-case';
 import { UpdateStreamerOnlineStatusUseCase } from '@application/use-cases/streamer/update-streamer-online-status.use-case';
@@ -10,14 +9,13 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Post,
   Put,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateStreamerDto } from '@presentation/dto/streamer/create-streamer.dto';
 import { StreamerResponseDto } from '@presentation/dto/streamer/streamer-response.dto';
 import { UpdateOnlineStatusDto } from '@presentation/dto/streamer/update-online-status.dto';
+import { UpdateStreamerDto } from '@presentation/dto/streamer/update-streamer.dto';
 import {
   CacheInterceptor,
   CacheResult,
@@ -27,32 +25,11 @@ import {
 @Controller('streamers')
 export class StreamerController {
   constructor(
-    private readonly createStreamerUseCase: CreateStreamerUseCase,
     private readonly getAllStreamersUseCase: GetAllStreamersUseCase,
     private readonly getOnlineStreamersUseCase: GetOnlineStreamersUseCase,
     private readonly updateStreamerUseCase: UpdateStreamerUseCase,
     private readonly updateStreamerOnlineStatusUseCase: UpdateStreamerOnlineStatusUseCase,
   ) {}
-
-  @Post()
-  @ApiOperation({ summary: 'Criar um novo streamer' })
-  @ApiResponse({
-    status: 201,
-    description: 'Streamer criado com sucesso.',
-    type: StreamerResponseDto,
-  })
-  async create(
-    @Body() createStreamerDto: CreateStreamerDto,
-  ): Promise<StreamerResponseDto> {
-    const streamer = await this.createStreamerUseCase.execute({
-      userId: createStreamerDto.userId,
-      points: createStreamerDto.points,
-      platforms: createStreamerDto.platforms,
-      streamDays: createStreamerDto.streamDays,
-    });
-
-    return StreamerResponseDto.fromDomain(streamer);
-  }
 
   @Get()
   @UseInterceptors(CacheInterceptor)
@@ -96,13 +73,15 @@ export class StreamerController {
   @ApiResponse({ status: 404, description: 'Streamer não encontrado.' })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateStreamerDto: Partial<CreateStreamerDto>,
+    @Body() updateStreamerDto: UpdateStreamerDto,
   ): Promise<StreamerResponseDto> {
     const streamer = await this.updateStreamerUseCase.execute({
       id,
-      points: updateStreamerDto.points,
+      nickname: updateStreamerDto.nickname,
       platforms: updateStreamerDto.platforms,
       streamDays: updateStreamerDto.streamDays,
+      startTime: updateStreamerDto.startTime,
+      endTime: updateStreamerDto.endTime,
     });
 
     return StreamerResponseDto.fromDomain(streamer);
