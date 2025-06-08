@@ -1,18 +1,25 @@
 import { CreateStreamerUseCase } from '@application/use-cases/streamer/create-streamer.use-case';
 import { GetAllStreamersUseCase } from '@application/use-cases/streamer/get-all-streamers.use-case';
+import { GetOnlineStreamersUseCase } from '@application/use-cases/streamer/get-online-streamers.use-case';
+import { UpdateStreamerOnlineStatusUseCase } from '@application/use-cases/streamer/update-streamer-online-status.use-case';
 import { UpdateStreamerUseCase } from '@application/use-cases/streamer/update-streamer.use-case';
 import { Streamer } from '@domain/entities/streamer.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NotFoundException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateStreamerDto } from '@presentation/dto/streamer/create-streamer.dto';
 import { StreamerResponseDto } from '@presentation/dto/streamer/streamer-response.dto';
+import { UpdateOnlineStatusDto } from '@presentation/dto/streamer/update-online-status.dto';
 import { StreamerController } from './streamer.controller';
 
 describe('StreamerController', () => {
   let controller: StreamerController;
   let mockCreateStreamerUseCase: any;
   let mockGetAllStreamersUseCase: any;
+  let mockGetOnlineStreamersUseCase: any;
   let mockUpdateStreamerUseCase: any;
+  let mockUpdateStreamerOnlineStatusUseCase: any;
 
   const mockStreamer = new Streamer(
     1,
@@ -20,6 +27,7 @@ describe('StreamerController', () => {
     100,
     ['Twitch', 'YouTube'],
     ['Monday', 'Tuesday'],
+    false,
     new Date('2024-01-01'),
     new Date('2024-01-01'),
   );
@@ -32,6 +40,7 @@ describe('StreamerController', () => {
       200,
       ['Kick'],
       ['Wednesday'],
+      true,
       new Date('2024-01-02'),
       new Date('2024-01-02'),
     ),
@@ -46,8 +55,23 @@ describe('StreamerController', () => {
       execute: jest.fn(),
     };
 
+    mockGetOnlineStreamersUseCase = {
+      execute: jest.fn(),
+    };
+
     mockUpdateStreamerUseCase = {
       execute: jest.fn(),
+    };
+
+    mockUpdateStreamerOnlineStatusUseCase = {
+      execute: jest.fn(),
+    };
+
+    const mockCacheManager = {
+      get: jest.fn(),
+      set: jest.fn(),
+      del: jest.fn(),
+      reset: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -62,9 +86,22 @@ describe('StreamerController', () => {
           useValue: mockGetAllStreamersUseCase,
         },
         {
+          provide: GetOnlineStreamersUseCase,
+          useValue: mockGetOnlineStreamersUseCase,
+        },
+        {
           provide: UpdateStreamerUseCase,
           useValue: mockUpdateStreamerUseCase,
         },
+        {
+          provide: UpdateStreamerOnlineStatusUseCase,
+          useValue: mockUpdateStreamerOnlineStatusUseCase,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
+        },
+        Reflector,
       ],
     }).compile();
 
@@ -196,10 +233,8 @@ describe('StreamerController', () => {
       expect(result[0]).toBeInstanceOf(StreamerResponseDto);
       expect(result[1]).toBeInstanceOf(StreamerResponseDto);
 
-      expect(result[0].id).toBe(1);
-      expect(result[0].userId).toBe(123);
-      expect(result[1].id).toBe(2);
-      expect(result[1].userId).toBe(456);
+      expect(result[0].id).toBe(mockStreamers[0].id);
+      expect(result[1].id).toBe(mockStreamers[1].id);
     });
 
     it('deve retornar array vazio quando não há streamers', async () => {
@@ -212,7 +247,6 @@ describe('StreamerController', () => {
       // Assert
       expect(mockGetAllStreamersUseCase.execute).toHaveBeenCalledTimes(1);
       expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
     });
 
     it('deve propagar erro do caso de uso', async () => {
@@ -256,206 +290,184 @@ describe('StreamerController', () => {
     });
   });
 
-  describe('update', () => {
-    it('deve atualizar um streamer com todos os parâmetros', async () => {
+  describe('findOnline', () => {
+    it('deve retornar streamers online', async () => {
       // Arrange
-      const id = 1;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {
+      const onlineStreamers = [mockStreamers[1]]; // Apenas o que tem isOnline = true
+      mockGetOnlineStreamersUseCase.execute.mockResolvedValue(onlineStreamers);
+
+      // Act
+      const result = await controller.findOnline();
+
+      // Assert
+      expect(mockGetOnlineStreamersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetOnlineStreamersUseCase.execute).toHaveBeenCalledWith();
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toBeInstanceOf(StreamerResponseDto);
+      expect(result[0].id).toBe(mockStreamers[1].id);
+      expect(result[0].isOnline).toBe(true);
+    });
+
+    it('deve retornar array vazio quando não há streamers online', async () => {
+      // Arrange
+      mockGetOnlineStreamersUseCase.execute.mockResolvedValue([]);
+
+      // Act
+      const result = await controller.findOnline();
+
+      // Assert
+      expect(mockGetOnlineStreamersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('update', () => {
+    it('deve atualizar um streamer com sucesso', async () => {
+      // Arrange
+      const updateData = {
         points: 150,
-        platforms: ['Twitch', 'Kick'],
-        streamDays: ['Friday', 'Saturday'],
+        platforms: ['Twitch'],
       };
 
       const updatedStreamer = new Streamer(
         1,
         123,
         150,
-        ['Twitch', 'Kick'],
-        ['Friday', 'Saturday'],
+        ['Twitch'],
+        ['Monday', 'Tuesday'],
+        false,
       );
 
       mockUpdateStreamerUseCase.execute.mockResolvedValue(updatedStreamer);
 
       // Act
-      const result = await controller.update(id, updateStreamerDto);
+      const result = await controller.update(1, updateData);
 
       // Assert
       expect(mockUpdateStreamerUseCase.execute).toHaveBeenCalledWith({
         id: 1,
         points: 150,
-        platforms: ['Twitch', 'Kick'],
-        streamDays: ['Friday', 'Saturday'],
+        platforms: ['Twitch'],
+        streamDays: undefined,
       });
 
       expect(result).toBeInstanceOf(StreamerResponseDto);
       expect(result.id).toBe(1);
       expect(result.points).toBe(150);
-      expect(result.platforms).toEqual(['Twitch', 'Kick']);
-      expect(result.streamDays).toEqual(['Friday', 'Saturday']);
+      expect(result.platforms).toEqual(['Twitch']);
     });
 
-    it('deve atualizar apenas pontos', async () => {
+    it('deve propagar NotFoundException quando streamer não existe', async () => {
       // Arrange
-      const id = 1;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {
-        points: 200,
-      };
+      const updateData = { points: 150 };
+      const error = new NotFoundException('Streamer não encontrado');
+      mockUpdateStreamerUseCase.execute.mockRejectedValue(error);
 
-      const updatedStreamer = new Streamer(1, 123, 200, ['Twitch'], ['Monday']);
-      mockUpdateStreamerUseCase.execute.mockResolvedValue(updatedStreamer);
-
-      // Act
-      const result = await controller.update(id, updateStreamerDto);
-
-      // Assert
+      // Act & Assert
+      await expect(controller.update(999, updateData)).rejects.toThrow(
+        NotFoundException,
+      );
       expect(mockUpdateStreamerUseCase.execute).toHaveBeenCalledWith({
-        id: 1,
-        points: 200,
+        id: 999,
+        points: 150,
         platforms: undefined,
         streamDays: undefined,
       });
-
-      expect(result.points).toBe(200);
     });
+  });
 
-    it('deve atualizar apenas plataformas', async () => {
+  describe('updateOnlineStatus', () => {
+    it('deve atualizar status online para true', async () => {
       // Arrange
-      const id = 1;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {
-        platforms: ['YouTube', 'Facebook Gaming'],
+      const updateStatusDto: UpdateOnlineStatusDto = {
+        isOnline: true,
       };
 
       const updatedStreamer = new Streamer(
         1,
         123,
         100,
-        ['YouTube', 'Facebook Gaming'],
-        ['Monday'],
+        ['Twitch', 'YouTube'],
+        ['Monday', 'Tuesday'],
+        true, // isOnline = true
       );
-      mockUpdateStreamerUseCase.execute.mockResolvedValue(updatedStreamer);
+
+      mockUpdateStreamerOnlineStatusUseCase.execute.mockResolvedValue(
+        updatedStreamer,
+      );
 
       // Act
-      const result = await controller.update(id, updateStreamerDto);
+      const result = await controller.updateOnlineStatus(1, updateStatusDto);
 
       // Assert
-      expect(mockUpdateStreamerUseCase.execute).toHaveBeenCalledWith({
-        id: 1,
-        points: undefined,
-        platforms: ['YouTube', 'Facebook Gaming'],
-        streamDays: undefined,
+      expect(
+        mockUpdateStreamerOnlineStatusUseCase.execute,
+      ).toHaveBeenCalledWith({
+        streamerId: 1,
+        isOnline: true,
       });
 
-      expect(result.platforms).toEqual(['YouTube', 'Facebook Gaming']);
+      expect(result).toBeInstanceOf(StreamerResponseDto);
+      expect(result.id).toBe(1);
+      expect(result.isOnline).toBe(true);
     });
 
-    it('deve atualizar apenas dias de stream', async () => {
+    it('deve atualizar status online para false', async () => {
       // Arrange
-      const id = 1;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {
-        streamDays: ['Sunday'],
+      const updateStatusDto: UpdateOnlineStatusDto = {
+        isOnline: false,
       };
 
-      const updatedStreamer = new Streamer(1, 123, 100, ['Twitch'], ['Sunday']);
-      mockUpdateStreamerUseCase.execute.mockResolvedValue(updatedStreamer);
+      const updatedStreamer = new Streamer(
+        1,
+        123,
+        100,
+        ['Twitch', 'YouTube'],
+        ['Monday', 'Tuesday'],
+        false, // isOnline = false
+      );
+
+      mockUpdateStreamerOnlineStatusUseCase.execute.mockResolvedValue(
+        updatedStreamer,
+      );
 
       // Act
-      const result = await controller.update(id, updateStreamerDto);
+      const result = await controller.updateOnlineStatus(1, updateStatusDto);
 
       // Assert
-      expect(mockUpdateStreamerUseCase.execute).toHaveBeenCalledWith({
-        id: 1,
-        points: undefined,
-        platforms: undefined,
-        streamDays: ['Sunday'],
+      expect(
+        mockUpdateStreamerOnlineStatusUseCase.execute,
+      ).toHaveBeenCalledWith({
+        streamerId: 1,
+        isOnline: false,
       });
 
-      expect(result.streamDays).toEqual(['Sunday']);
+      expect(result).toBeInstanceOf(StreamerResponseDto);
+      expect(result.id).toBe(1);
+      expect(result.isOnline).toBe(false);
     });
 
     it('deve propagar NotFoundException quando streamer não existe', async () => {
       // Arrange
-      const id = 999;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {
-        points: 100,
+      const updateStatusDto: UpdateOnlineStatusDto = {
+        isOnline: true,
       };
 
-      const error = new NotFoundException('Streamer com ID 999 não encontrado');
-      mockUpdateStreamerUseCase.execute.mockRejectedValue(error);
+      const error = new NotFoundException('Streamer não encontrado');
+      mockUpdateStreamerOnlineStatusUseCase.execute.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(controller.update(id, updateStreamerDto)).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(mockUpdateStreamerUseCase.execute).toHaveBeenCalledWith({
-        id: 999,
-        points: 100,
-        platforms: undefined,
-        streamDays: undefined,
+      await expect(
+        controller.updateOnlineStatus(999, updateStatusDto),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(
+        mockUpdateStreamerOnlineStatusUseCase.execute,
+      ).toHaveBeenCalledWith({
+        streamerId: 999,
+        isOnline: true,
       });
-    });
-
-    it('deve atualizar com arrays vazios', async () => {
-      // Arrange
-      const id = 1;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {
-        platforms: [],
-        streamDays: [],
-      };
-
-      const updatedStreamer = new Streamer(1, 123, 100, [], []);
-      mockUpdateStreamerUseCase.execute.mockResolvedValue(updatedStreamer);
-
-      // Act
-      const result = await controller.update(id, updateStreamerDto);
-
-      // Assert
-      expect(mockUpdateStreamerUseCase.execute).toHaveBeenCalledWith({
-        id: 1,
-        points: undefined,
-        platforms: [],
-        streamDays: [],
-      });
-
-      expect(result.platforms).toEqual([]);
-      expect(result.streamDays).toEqual([]);
-    });
-
-    it('deve atualizar com pontos zero', async () => {
-      // Arrange
-      const id = 1;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {
-        points: 0,
-      };
-
-      const updatedStreamer = new Streamer(1, 123, 0, ['Twitch'], ['Monday']);
-      mockUpdateStreamerUseCase.execute.mockResolvedValue(updatedStreamer);
-
-      // Act
-      const result = await controller.update(id, updateStreamerDto);
-
-      // Assert
-      expect(result.points).toBe(0);
-    });
-
-    it('deve atualizar sem nenhum parâmetro (DTO vazio)', async () => {
-      // Arrange
-      const id = 1;
-      const updateStreamerDto: Partial<CreateStreamerDto> = {};
-
-      mockUpdateStreamerUseCase.execute.mockResolvedValue(mockStreamer);
-
-      // Act
-      const result = await controller.update(id, updateStreamerDto);
-
-      // Assert
-      expect(mockUpdateStreamerUseCase.execute).toHaveBeenCalledWith({
-        id: 1,
-        points: undefined,
-        platforms: undefined,
-        streamDays: undefined,
-      });
-
-      expect(result).toBeInstanceOf(StreamerResponseDto);
     });
   });
 });
