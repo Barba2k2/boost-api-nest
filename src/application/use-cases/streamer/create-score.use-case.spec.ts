@@ -19,6 +19,8 @@ describe('CreateScoreUseCase', () => {
     delete: jest.fn(),
     getTotalPointsByStreamerId: jest.fn(),
     getDailyPointsByStreamerAndDate: jest.fn(),
+    getScoreReportByPeriod: jest.fn(),
+    getScoresByDateGroupedByHour: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -45,16 +47,17 @@ describe('CreateScoreUseCase', () => {
       // Arrange
       const command = {
         streamerId: 1,
-        points: 5,
-        reason: 'Completou stream de 2 horas',
+        date: new Date('2025-04-29T00:00:00Z'),
+        hour: 18,
+        minute: 50,
+        points: 1,
       };
 
       const expectedScore = new Score(
         1,
         1,
-        5,
-        'Completou stream de 2 horas',
-        new Date(),
+        1,
+        new Date('2025-04-29T18:50:00Z'),
       );
 
       mockScoreRepository.create.mockResolvedValue(expectedScore);
@@ -65,8 +68,10 @@ describe('CreateScoreUseCase', () => {
       // Assert
       expect(scoreRepository.create).toHaveBeenCalledWith({
         streamerId: 1,
-        points: 5,
-        reason: 'Completou stream de 2 horas',
+        date: new Date('2025-04-29T00:00:00Z'),
+        hour: 18,
+        minute: 50,
+        points: 1,
       });
       expect(result).toBe(expectedScore);
     });
@@ -75,8 +80,10 @@ describe('CreateScoreUseCase', () => {
       // Arrange
       const command = {
         streamerId: 1,
+        date: new Date('2025-04-29T00:00:00Z'),
+        hour: 18,
+        minute: 50,
         points: 50,
-        reason: 'Tentativa de pontuação',
       };
 
       const error = new BadRequestException(
@@ -98,16 +105,17 @@ describe('CreateScoreUseCase', () => {
       // Arrange
       const command = {
         streamerId: 1,
+        date: new Date('2025-04-29T00:00:00Z'),
+        hour: 18,
+        minute: 50,
         points: -10,
-        reason: 'Penalidade por cancelamento de stream',
       };
 
       const expectedScore = new Score(
         1,
         1,
         -10,
-        'Penalidade por cancelamento de stream',
-        new Date(),
+        new Date('2025-04-29T18:50:00Z'),
       );
 
       mockScoreRepository.create.mockResolvedValue(expectedScore);
@@ -118,8 +126,10 @@ describe('CreateScoreUseCase', () => {
       // Assert
       expect(scoreRepository.create).toHaveBeenCalledWith({
         streamerId: 1,
+        date: new Date('2025-04-29T00:00:00Z'),
+        hour: 18,
+        minute: 50,
         points: -10,
-        reason: 'Penalidade por cancelamento de stream',
       });
       expect(result).toBe(expectedScore);
       expect(result.points).toBe(-10);
