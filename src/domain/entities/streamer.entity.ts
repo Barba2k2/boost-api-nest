@@ -8,6 +8,9 @@ export class Streamer {
     public readonly isOnline: boolean = false,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
+    public readonly nickname?: string,
+    public readonly startTime?: string,
+    public readonly endTime?: string,
   ) {}
 
   public addPoints(points: number): number {
@@ -46,6 +49,9 @@ export class Streamer {
       isOnline,
       this.createdAt,
       this.updatedAt,
+      this.nickname,
+      this.startTime,
+      this.endTime,
     );
   }
 }
