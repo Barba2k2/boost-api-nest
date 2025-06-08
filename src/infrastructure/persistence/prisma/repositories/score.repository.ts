@@ -1,8 +1,11 @@
 import {
   CreateScoreData,
+  DailyScoreData,
   IScoreRepository,
   ScoreByHourData,
   ScoreReportData,
+  WeeklyAverageData,
+  WeeklyRankingData,
 } from '@application/ports/repositories/score.repository.interface';
 import { Score } from '@domain/entities/score.entity';
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -231,6 +234,237 @@ export class ScoreRepository implements IScoreRepository {
       prismaScore.points,
       prismaScore.date,
     );
+  }
+
+  async getWeeklyRanking(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<WeeklyRankingData[]> {
+    // Buscar todos os scores da semana com informações do streamer
+    const scores = await this.prisma.score.findMany({
+      where: {
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        streamer: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    // Agrupar por streamer
+    const streamerMap = new Map<
+      number,
+      {
+        streamerId: number;
+        nickname: string;
+        totalPoints: number;
+        dailyPoints: { [day: string]: number };
+      }
+    >();
+
+    const dayNames = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
+
+    scores.forEach((score) => {
+      const streamerId = score.streamerId;
+      const dayOfWeek = dayNames[score.date.getDay()];
+
+      if (!streamerMap.has(streamerId)) {
+        streamerMap.set(streamerId, {
+          streamerId,
+          nickname: score.streamer.user.nickname,
+          totalPoints: 0,
+          dailyPoints: {},
+        });
+      }
+
+      const streamerData = streamerMap.get(streamerId)!;
+      streamerData.totalPoints += score.points;
+
+      if (!streamerData.dailyPoints[dayOfWeek]) {
+        streamerData.dailyPoints[dayOfWeek] = 0;
+      }
+      streamerData.dailyPoints[dayOfWeek] += score.points;
+    });
+
+    // Converter para array e calcular médias
+    const rankingData = Array.from(streamerMap.values()).map((streamer) => {
+      const daysWithPoints = Object.keys(streamer.dailyPoints).length;
+      const averagePoints =
+        daysWithPoints > 0 ? streamer.totalPoints / daysWithPoints : 0;
+
+      return {
+        ...streamer,
+        averagePoints: Math.round(averagePoints * 100) / 100, // Arredondar para 2 casas decimais
+        position: 0, // Será definido após ordenação
+      };
+    });
+
+    // Ordenar por total de pontos (decrescente) e definir posições
+    rankingData.sort((a, b) => b.totalPoints - a.totalPoints);
+    rankingData.forEach((streamer, index) => {
+      streamer.position = index + 1;
+    });
+
+    return rankingData;
+  }
+
+  async getWeeklyAverage(
+    streamerId: number,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<WeeklyAverageData | null> {
+    // Buscar o streamer
+    const streamer = await this.prisma.streamer.findUnique({
+      where: { id: streamerId },
+      include: { user: true },
+    });
+
+    if (!streamer) {
+      return null;
+    }
+
+    // Buscar todos os scores da semana para este streamer
+    const scores = await this.prisma.score.findMany({
+      where: {
+        streamerId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    const dayNames = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
+    const dailyBreakdown: { [day: string]: number } = {};
+    let totalPoints = 0;
+
+    // Agrupar pontos por dia
+    scores.forEach((score) => {
+      const dayOfWeek = dayNames[score.date.getDay()];
+      totalPoints += score.points;
+
+      if (!dailyBreakdown[dayOfWeek]) {
+        dailyBreakdown[dayOfWeek] = 0;
+      }
+      dailyBreakdown[dayOfWeek] += score.points;
+    });
+
+    const daysWithPoints = Object.keys(dailyBreakdown).length;
+    const averagePoints = daysWithPoints > 0 ? totalPoints / daysWithPoints : 0;
+
+    return {
+      streamerId,
+      nickname: streamer.user.nickname,
+      totalPoints,
+      daysWithPoints,
+      averagePoints: Math.round(averagePoints * 100) / 100,
+      dailyBreakdown,
+    };
+  }
+
+  async getDailyScoresForWeek(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<DailyScoreData[]> {
+    // Buscar todos os scores da semana
+    const scores = await this.prisma.score.findMany({
+      where: {
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        streamer: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    // Agrupar por data
+    const dailyMap = new Map<
+      string,
+      {
+        date: Date;
+        dayOfWeek: string;
+        streamers: Map<
+          number,
+          { streamerId: number; nickname: string; points: number }
+        >;
+      }
+    >();
+
+    const dayNames = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
+
+    scores.forEach((score) => {
+      const dateKey = score.date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const dayOfWeek = dayNames[score.date.getDay()];
+
+      if (!dailyMap.has(dateKey)) {
+        dailyMap.set(dateKey, {
+          date: score.date,
+          dayOfWeek,
+          streamers: new Map(),
+        });
+      }
+
+      const dayData = dailyMap.get(dateKey)!;
+      const streamerId = score.streamerId;
+
+      if (!dayData.streamers.has(streamerId)) {
+        dayData.streamers.set(streamerId, {
+          streamerId,
+          nickname: score.streamer.user.nickname,
+          points: 0,
+        });
+      }
+
+      dayData.streamers.get(streamerId)!.points += score.points;
+    });
+
+    // Converter para array final
+    return Array.from(dailyMap.values()).map((dayData) => ({
+      date: dayData.date,
+      dayOfWeek: dayData.dayOfWeek,
+      streamers: Array.from(dayData.streamers.values()).sort(
+        (a, b) => b.points - a.points,
+      ),
+    }));
   }
 
   private async validateNoDuplicateInLastSixMinutes(
