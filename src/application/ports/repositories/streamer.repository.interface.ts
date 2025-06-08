@@ -10,9 +10,11 @@ export interface CreateStreamerData {
 }
 
 export interface UpdateStreamerData {
-  points?: number;
+  nickname?: string;
   platforms?: string[];
   streamDays?: string[];
+  startTime?: string;
+  endTime?: string;
   isOnline?: boolean;
 }
 
