@@ -12,28 +12,15 @@ export class ScoreResponseDto {
   points: number;
 
   @ApiProperty({
-    example: 'Completou stream de 2 horas',
-    description: 'Motivo da pontuação',
-  })
-  reason: string;
-
-  @ApiProperty({
     example: '2025-01-04T14:30:00Z',
     description: 'Data de criação',
   })
   createdAt: Date;
 
-  constructor(
-    id: number,
-    streamerId: number,
-    points: number,
-    reason: string,
-    createdAt: Date,
-  ) {
+  constructor(id: number, streamerId: number, points: number, createdAt: Date) {
     this.id = id;
     this.streamerId = streamerId;
     this.points = points;
-    this.reason = reason;
     this.createdAt = createdAt;
   }
 
@@ -42,7 +29,6 @@ export class ScoreResponseDto {
       score.id,
       score.streamerId,
       score.points,
-      score.reason,
       score.createdAt || new Date(),
     );
   }
