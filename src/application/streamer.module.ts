@@ -11,8 +11,8 @@ import { UpdateStreamerOnlineStatusUseCase } from './use-cases/streamer/update-s
 import { UpdateStreamerUseCase } from './use-cases/streamer/update-streamer.use-case';
 
 // Repository Tokens
+import { SCORE_REPOSITORY_TOKEN } from './ports/repositories/score.repository.interface';
 import { STREAMER_REPOSITORY_TOKEN } from './ports/repositories/streamer.repository.interface';
-import { SCORE_REPOSITORY_TOKEN } from './use-cases/streamer/create-score.use-case';
 
 // Repository Implementations
 import { ScoreRepository } from '@infrastructure/persistence/prisma/repositories/score.repository';
