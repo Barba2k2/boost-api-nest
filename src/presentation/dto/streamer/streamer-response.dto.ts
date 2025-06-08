@@ -24,6 +24,12 @@ export class StreamerResponseDto {
   streamDays: string[];
 
   @ApiProperty({
+    example: true,
+    description: 'Status online do streamer',
+  })
+  isOnline: boolean;
+
+  @ApiProperty({
     example: '2023-01-01T00:00:00.000Z',
     description: 'Data de criação',
     required: false,
@@ -44,6 +50,7 @@ export class StreamerResponseDto {
     dto.points = streamer.points;
     dto.platforms = streamer.platforms;
     dto.streamDays = streamer.streamDays;
+    dto.isOnline = streamer.isOnline;
     dto.createdAt = streamer.createdAt;
     dto.updatedAt = streamer.updatedAt;
     return dto;
