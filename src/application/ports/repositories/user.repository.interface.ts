@@ -24,6 +24,7 @@ export interface IUserRepository {
   findByEmailOrNickname(emailOrNickname: string): Promise<User | null>;
   updateTokens(id: number, tokens: UpdateTokensData): Promise<User>;
   updateLastLogin(id: number): Promise<User>;
+  updatePassword(id: number, hashedPassword: string): Promise<User>;
   existsByNickname(nickname: string): Promise<boolean>;
   existsByEmail(email: string): Promise<boolean>;
   findUsersWithLogin(limit: number, offset: number): Promise<User[]>;
