@@ -3,14 +3,14 @@ import { IsNotEmpty, IsString } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'Nome de usuário (nickname) do usuário',
-    example: 'johndoe',
+    description: 'Email ou nome de usuário (nickname)',
+    example: 'joao@example.com',
   })
-  @IsNotEmpty({ message: 'O nickname é obrigatório' })
-  @IsString({ message: 'O nickname deve ser uma string' })
-  nickname: string;
+  @IsNotEmpty({ message: 'O email ou nickname é obrigatório' })
+  @IsString({ message: 'O email ou nickname deve ser uma string' })
+  emailOrNickname: string;
 
-  @ApiProperty({ description: 'Senha do usuário', example: 'Senha@123' })
+  @ApiProperty({ description: 'Senha do usuário', example: 'MinhaSenh@123' })
   @IsNotEmpty({ message: 'A senha é obrigatória' })
   @IsString({ message: 'A senha deve ser uma string' })
   password: string;
