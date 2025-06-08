@@ -1,0 +1,537 @@
+{
+  "info": {
+    "name": "Boost API - NestJS",
+    "description": "Collection completa da API Boost desenvolvida em NestJS. Inclui endpoints para autenticação, gerenciamento de usuários, streamers e sistema de pontuação.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "streamer_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Registrar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"João Silva\",\n  \"nickname\": \"joaosilva\",\n  \"email\": \"joao@example.com\",\n  \"password\": \"MinhaSenh@123\",\n  \"confirmPassword\": \"MinhaSenh@123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refresh_token);",
+                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"password\": \"MinhaSenh@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirmar Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmationCode\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/confirm-login/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "confirm-login", "{{user_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Renovar Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh", "{{user_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logs de Login (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/login-logs?limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login-logs"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👥 Usuários",
+      "item": [
+        {
+          "name": "Criar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Maria Santos\",\n  \"nickname\": \"mariasantos\",\n  \"email\": \"maria@example.com\",\n  \"password\": \"MinhaSenh@123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Usuário por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Tokens do Usuário",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessToken\": \"novo_access_token\",\n  \"refreshToken\": \"novo_refresh_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/tokens",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}", "tokens"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎬 Streamers",
+      "item": [
+        {
+          "name": "Criar Streamer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('streamer_id', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{user_id}},\n  \"points\": 0,\n  \"platforms\": [\"twitch\", \"youtube\"],\n  \"streamDays\": [\"monday\", \"wednesday\", \"friday\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/streamers",
+              "host": ["{{base_url}}"],
+              "path": ["streamers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Todos os Streamers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/streamers",
+              "host": ["{{base_url}}"],
+              "path": ["streamers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Streamers Online",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/streamers/online",
+              "host": ["{{base_url}}"],
+              "path": ["streamers", "online"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Streamer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 100,\n  \"platforms\": [\"twitch\", \"youtube\", \"tiktok\"],\n  \"streamDays\": [\"monday\", \"tuesday\", \"wednesday\", \"friday\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/streamers/{{streamer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["streamers", "{{streamer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Status Online",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isOnline\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/streamers/{{streamer_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["streamers", "{{streamer_id}}", "status"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏆 Sistema de Pontuação",
+      "item": [
+        {
+          "name": "Criar Score (Privado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"streamerId\": {{streamer_id}},\n  \"points\": 10,\n  \"reason\": \"Completou stream de 2 horas\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/scores",
+              "host": ["{{base_url}}"],
+              "path": ["scores"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Pontos Diários (Privado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scores/daily-points/{{streamer_id}}?date=2025-01-04",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "daily-points", "{{streamer_id}}"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-01-04",
+                  "description": "Data no formato YYYY-MM-DD (opcional)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Pontos Diários (Público)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scores/public/daily-points/{{streamer_id}}?date=2025-01-04",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "public", "daily-points", "{{streamer_id}}"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-01-04",
+                  "description": "Data no formato YYYY-MM-DD (opcional)"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Exemplos de Teste",
+      "item": [
+        {
+          "name": "Workflow Completo - Registro e Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Teste Workflow\",\n  \"nickname\": \"testeworkflow\",\n  \"email\": \"teste@workflow.com\",\n  \"password\": \"TesteWorkflow@123\",\n  \"confirmPassword\": \"TesteWorkflow@123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Teste de Rate Limit - Score",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"streamerId\": 1,\n  \"points\": 5,\n  \"reason\": \"Teste de rate limit\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/scores",
+              "host": ["{{base_url}}"],
+              "path": ["scores"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Teste Limite Diário - 240 Pontos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"streamerId\": 1,\n  \"points\": 241,\n  \"reason\": \"Teste limite diário excedido\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/scores",
+              "host": ["{{base_url}}"],
+              "path": ["scores"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-refresh token if needed",
+          "const accessToken = pm.collectionVariables.get('access_token');",
+          "if (!accessToken && pm.request.url.path.join('/') !== 'auth/login' && pm.request.url.path.join('/') !== 'auth/register') {",
+          "    console.log('⚠️  Token de acesso não encontrado. Execute o login primeiro.');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global response logging",
+          "if (pm.response.code >= 400) {",
+          "    console.log('❌ Erro na requisição:', pm.response.status, pm.response.text());",
+          "} else {",
+          "    console.log('✅ Sucesso:', pm.response.status, pm.info.requestName);",
+          "}"
+        ]
+      }
+    }
+  ]
+}
