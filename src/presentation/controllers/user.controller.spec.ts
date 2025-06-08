@@ -2,10 +2,13 @@ import { CreateUserUseCase } from '@application/use-cases/user/create-user.use-c
 import { GetUserByIdUseCase } from '@application/use-cases/user/get-user-by-id.use-case';
 import { UpdateUserTokensUseCase } from '@application/use-cases/user/update-user-tokens.use-case';
 import { User, UserRole } from '@domain/entities/user.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from '@presentation/dto/user/create-user.dto';
 import { UpdateTokensDto } from '@presentation/dto/user/update-tokens.dto';
+import { RateLimitService } from '../../infrastructure/cache/rate-limit.service';
 import { UserController } from './user.controller';
 
 describe('UserController', () => {
@@ -26,6 +29,20 @@ describe('UserController', () => {
     execute: jest.fn(),
   };
 
+  const mockRateLimitService = {
+    checkLoginRateLimit: jest.fn(),
+    isTemporarilyBlocked: jest.fn(),
+    incrementFailedAttempts: jest.fn(),
+    clearFailedAttempts: jest.fn(),
+  };
+
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    reset: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
@@ -42,6 +59,15 @@ describe('UserController', () => {
           provide: UpdateUserTokensUseCase,
           useValue: mockUpdateUserTokensUseCase,
         },
+        {
+          provide: RateLimitService,
+          useValue: mockRateLimitService,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
+        },
+        Reflector,
       ],
     }).compile();
 
@@ -57,12 +83,27 @@ describe('UserController', () => {
 
   describe('create', () => {
     const createUserDto: CreateUserDto = {
+      fullName: 'Test User',
       nickname: 'testuser',
+      email: 'test@example.com',
       password: 'password123',
       role: UserRole.USER,
     };
 
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+    const mockUser = new User(
+      1,
+      'testuser',
+      'hashedpassword',
+      UserRole.USER,
+      'test@example.com',
+      'Test User',
+      undefined,
+      undefined,
+      undefined,
+      new Date(),
+      new Date(),
+      new Date(),
+    );
 
     it('deve criar um usuário com sucesso', async () => {
       // Arrange
@@ -73,7 +114,9 @@ describe('UserController', () => {
 
       // Assert
       expect(createUserUseCase.execute).toHaveBeenCalledWith({
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'password123',
         role: UserRole.USER,
       });
@@ -94,7 +137,9 @@ describe('UserController', () => {
         ConflictException,
       );
       expect(createUserUseCase.execute).toHaveBeenCalledWith({
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'password123',
         role: UserRole.USER,
       });
@@ -102,7 +147,20 @@ describe('UserController', () => {
   });
 
   describe('findById', () => {
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+    const mockUser = new User(
+      1,
+      'testuser',
+      'hashedpassword',
+      UserRole.USER,
+      'test@example.com',
+      'Test User',
+      undefined,
+      undefined,
+      undefined,
+      new Date(),
+      new Date(),
+      new Date(),
+    );
 
     it('deve retornar um usuário por ID', async () => {
       // Arrange
@@ -143,6 +201,14 @@ describe('UserController', () => {
       'testuser',
       'hashedpassword',
       UserRole.USER,
+      'test@example.com',
+      'Test User',
+      undefined,
+      undefined,
+      undefined,
+      new Date(),
+      new Date(),
+      new Date(),
     );
 
     it('deve atualizar tokens do usuário com sucesso', async () => {

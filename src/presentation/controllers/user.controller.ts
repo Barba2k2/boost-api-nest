@@ -45,7 +45,9 @@ export class UserController {
   @ApiResponse({ status: 409, description: 'Usuário já existe.' })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const user = await this.createUserUseCase.execute({
+      fullName: createUserDto.fullName,
       nickname: createUserDto.nickname,
+      email: createUserDto.email,
       password: createUserDto.password,
       role: createUserDto.role,
     });
