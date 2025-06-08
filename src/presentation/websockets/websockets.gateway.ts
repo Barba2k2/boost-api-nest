@@ -1,10 +1,10 @@
+import { Logger } from '@nestjs/common';
 import {
-  WebSocketGateway,
-  WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { WebsocketsService } from './websockets.service';
 
@@ -42,6 +42,8 @@ export class WebsocketsGateway
   }
 
   private broadcastScheduleUpdate(update: any) {
-    this.server.emit('schedule-update', update);
+    if (this.server) {
+      this.server.emit('schedule-update', update);
+    }
   }
 }
