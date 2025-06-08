@@ -45,7 +45,7 @@ describe('LocalStrategy', () => {
 
       // Assert
       expect(mockValidateUserUseCase.execute).toHaveBeenCalledWith({
-        nickname,
+        emailOrNickname: nickname,
         password,
       });
       expect(result).toEqual(mockUser);
@@ -63,7 +63,7 @@ describe('LocalStrategy', () => {
         UnauthorizedException,
       );
       expect(mockValidateUserUseCase.execute).toHaveBeenCalledWith({
-        nickname,
+        emailOrNickname: nickname,
         password,
       });
     });
@@ -80,7 +80,7 @@ describe('LocalStrategy', () => {
         UnauthorizedException,
       );
       expect(mockValidateUserUseCase.execute).toHaveBeenCalledWith({
-        nickname,
+        emailOrNickname: nickname,
         password,
       });
     });
@@ -98,7 +98,7 @@ describe('LocalStrategy', () => {
         'Database connection failed',
       );
       expect(mockValidateUserUseCase.execute).toHaveBeenCalledWith({
-        nickname,
+        emailOrNickname: nickname,
         password,
       });
     });
@@ -146,7 +146,7 @@ describe('LocalStrategy', () => {
         UnauthorizedException,
       );
       expect(mockValidateUserUseCase.execute).toHaveBeenCalledWith({
-        nickname: '',
+        emailOrNickname: '',
         password: '',
       });
     });
@@ -163,7 +163,7 @@ describe('LocalStrategy', () => {
 
       // Assert
       expect(mockValidateUserUseCase.execute).toHaveBeenCalledWith({
-        nickname: '  testuser  ',
+        emailOrNickname: '  testuser  ',
         password: '  password123  ',
       });
       expect(result).toEqual(mockUser);
@@ -181,7 +181,7 @@ describe('LocalStrategy', () => {
 
       // Assert
       expect(mockValidateUserUseCase.execute).toHaveBeenCalledWith({
-        nickname: 'test@user.com',
+        emailOrNickname: 'test@user.com',
         password: 'p@ssw0rd!#$',
       });
       expect(result).toEqual(mockUser);
@@ -194,9 +194,12 @@ describe('LocalStrategy', () => {
         'testuser',
         'hashedpassword',
         UserRole.USER,
+        'test@example.com',
+        'Test User',
         'refresh-token',
         'web-token',
         'windows-token',
+        new Date(),
         new Date(),
         new Date(),
       );
