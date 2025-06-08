@@ -7,6 +7,7 @@ import {
   RegisterUserCommand,
   RegisterUserUseCase,
 } from './register-user.use-case';
+import { SendWelcomeEmailUseCase } from './send-welcome-email.use-case';
 
 // Mock do bcrypt
 jest.mock('bcrypt');
@@ -20,6 +21,10 @@ describe('RegisterUserUseCase', () => {
     execute: jest.fn(),
   };
 
+  const mockSendWelcomeEmailUseCase = {
+    execute: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -27,6 +32,10 @@ describe('RegisterUserUseCase', () => {
         {
           provide: CreateUserUseCase,
           useValue: mockCreateUserUseCase,
+        },
+        {
+          provide: SendWelcomeEmailUseCase,
+          useValue: mockSendWelcomeEmailUseCase,
         },
       ],
     }).compile();
@@ -41,12 +50,22 @@ describe('RegisterUserUseCase', () => {
 
   describe('execute', () => {
     const validCommand: RegisterUserCommand = {
+      fullName: 'Test User',
       nickname: 'testuser',
+      email: 'test@example.com',
       password: 'plainpassword',
+      confirmPassword: 'plainpassword',
       role: UserRole.USER,
     };
 
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+    const mockUser = new User(
+      1,
+      'testuser',
+      'hashedpassword',
+      UserRole.USER,
+      'test@example.com',
+      'Test User',
+    );
 
     it('deve registrar um usuário com senha hasheada', async () => {
       // Arrange
@@ -59,7 +78,9 @@ describe('RegisterUserUseCase', () => {
       // Assert
       expect(bcrypt.hash).toHaveBeenCalledWith('plainpassword', 10);
       expect(createUserUseCase.execute).toHaveBeenCalledWith({
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'hashedpassword',
         role: UserRole.USER,
       });
@@ -69,7 +90,14 @@ describe('RegisterUserUseCase', () => {
     it('deve registrar usuário ADMIN', async () => {
       // Arrange
       const adminCommand = { ...validCommand, role: UserRole.ADMIN };
-      const adminUser = new User(1, 'admin', 'hashedpassword', UserRole.ADMIN);
+      const adminUser = new User(
+        1,
+        'testuser',
+        'hashedpassword',
+        UserRole.ADMIN,
+        'test@example.com',
+        'Test User',
+      );
 
       mockedBcrypt.hash.mockResolvedValue('hashedpassword' as never);
       createUserUseCase.execute.mockResolvedValue(adminUser);
@@ -80,7 +108,9 @@ describe('RegisterUserUseCase', () => {
       // Assert
       expect(bcrypt.hash).toHaveBeenCalledWith('plainpassword', 10);
       expect(createUserUseCase.execute).toHaveBeenCalledWith({
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'hashedpassword',
         role: UserRole.ADMIN,
       });
@@ -92,9 +122,11 @@ describe('RegisterUserUseCase', () => {
       const assistantCommand = { ...validCommand, role: UserRole.ASSISTANT };
       const assistantUser = new User(
         1,
-        'assistant',
+        'testuser',
         'hashedpassword',
         UserRole.ASSISTANT,
+        'test@example.com',
+        'Test User',
       );
 
       mockedBcrypt.hash.mockResolvedValue('hashedpassword' as never);
@@ -106,7 +138,9 @@ describe('RegisterUserUseCase', () => {
       // Assert
       expect(bcrypt.hash).toHaveBeenCalledWith('plainpassword', 10);
       expect(createUserUseCase.execute).toHaveBeenCalledWith({
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'hashedpassword',
         role: UserRole.ASSISTANT,
       });
@@ -127,7 +161,9 @@ describe('RegisterUserUseCase', () => {
 
       expect(bcrypt.hash).toHaveBeenCalledWith('plainpassword', 10);
       expect(createUserUseCase.execute).toHaveBeenCalledWith({
+        fullName: 'Test User',
         nickname: 'testuser',
+        email: 'test@example.com',
         password: 'hashedpassword',
         role: UserRole.USER,
       });
