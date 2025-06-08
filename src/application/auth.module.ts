@@ -6,9 +6,12 @@ import { PassportModule } from '@nestjs/passport';
 // Use Cases
 import { GenerateTokensUseCase } from './use-cases/auth/generate-tokens.use-case';
 import { GetLoginLogsUseCase } from './use-cases/auth/get-login-logs.use-case';
+import { InitiatePasswordResetUseCase } from './use-cases/auth/initiate-password-reset.use-case';
 import { RefreshTokenUseCase } from './use-cases/auth/refresh-token.use-case';
 import { RegisterUserUseCase } from './use-cases/auth/register-user.use-case';
+import { ResetPasswordUseCase } from './use-cases/auth/reset-password.use-case';
 import { SendWelcomeEmailUseCase } from './use-cases/auth/send-welcome-email.use-case';
+import { ValidatePasswordResetPinUseCase } from './use-cases/auth/validate-password-reset-pin.use-case';
 import { ValidateUserUseCase } from './use-cases/auth/validate-user.use-case';
 
 // Casos de uso do User Module
@@ -60,6 +63,9 @@ import { PrismaModule } from '../prisma/prisma.module';
     RefreshTokenUseCase,
     GetLoginLogsUseCase,
     SendWelcomeEmailUseCase,
+    InitiatePasswordResetUseCase,
+    ValidatePasswordResetPinUseCase,
+    ResetPasswordUseCase,
 
     // User Use Cases (dependências)
     CreateUserUseCase,
