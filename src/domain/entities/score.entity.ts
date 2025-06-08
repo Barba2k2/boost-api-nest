@@ -3,7 +3,6 @@ export class Score {
     public readonly id: number,
     public readonly streamerId: number,
     public readonly points: number,
-    public readonly reason: string,
     public readonly createdAt?: Date,
   ) {}
 
