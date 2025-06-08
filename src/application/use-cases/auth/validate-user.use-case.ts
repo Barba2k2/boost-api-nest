@@ -7,7 +7,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 export interface ValidateUserCommand {
-  nickname: string;
+  emailOrNickname: string;
   password: string;
 }
 
@@ -19,7 +19,9 @@ export class ValidateUserUseCase {
   ) {}
 
   async execute(command: ValidateUserCommand): Promise<User> {
-    const user = await this.userRepository.findByNickname(command.nickname);
+    const user = await this.userRepository.findByEmailOrNickname(
+      command.emailOrNickname,
+    );
 
     if (!user) {
       throw new UnauthorizedException(

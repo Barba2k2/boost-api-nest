@@ -23,6 +23,7 @@ describe('ValidateUserUseCase', () => {
     create: jest.fn(),
     findById: jest.fn(),
     findByNickname: jest.fn(),
+    findByEmailOrNickname: jest.fn(),
     updateTokens: jest.fn(),
     existsByNickname: jest.fn(),
   };
@@ -48,22 +49,37 @@ describe('ValidateUserUseCase', () => {
 
   describe('execute', () => {
     const validCommand: ValidateUserCommand = {
-      nickname: 'testuser',
+      emailOrNickname: 'testuser',
       password: 'plainpassword',
     };
 
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+    const mockUser = new User(
+      1,
+      'testuser',
+      'hashedpassword',
+      UserRole.USER,
+      'test@example.com',
+      'Test User',
+      undefined,
+      undefined,
+      undefined,
+      new Date(),
+      new Date(),
+      new Date(),
+    );
 
     it('deve validar usuário com credenciais corretas', async () => {
       // Arrange
-      userRepository.findByNickname.mockResolvedValue(mockUser);
+      userRepository.findByEmailOrNickname.mockResolvedValue(mockUser);
       mockedBcrypt.compare.mockResolvedValue(true as never);
 
       // Act
       const result = await useCase.execute(validCommand);
 
       // Assert
-      expect(userRepository.findByNickname).toHaveBeenCalledWith('testuser');
+      expect(userRepository.findByEmailOrNickname).toHaveBeenCalledWith(
+        'testuser',
+      );
       expect(bcrypt.compare).toHaveBeenCalledWith(
         'plainpassword',
         'hashedpassword',
@@ -73,20 +89,22 @@ describe('ValidateUserUseCase', () => {
 
     it('deve lançar UnauthorizedException quando usuário não existe', async () => {
       // Arrange
-      userRepository.findByNickname.mockResolvedValue(null);
+      userRepository.findByEmailOrNickname.mockResolvedValue(null);
 
       // Act & Assert
       await expect(useCase.execute(validCommand)).rejects.toThrow(
         new UnauthorizedException('Usuário não encontrado ou senha inválida'),
       );
 
-      expect(userRepository.findByNickname).toHaveBeenCalledWith('testuser');
+      expect(userRepository.findByEmailOrNickname).toHaveBeenCalledWith(
+        'testuser',
+      );
       expect(bcrypt.compare).not.toHaveBeenCalled();
     });
 
     it('deve lançar UnauthorizedException quando senha está incorreta', async () => {
       // Arrange
-      userRepository.findByNickname.mockResolvedValue(mockUser);
+      userRepository.findByEmailOrNickname.mockResolvedValue(mockUser);
       mockedBcrypt.compare.mockResolvedValue(false as never);
 
       // Act & Assert
@@ -94,7 +112,9 @@ describe('ValidateUserUseCase', () => {
         new UnauthorizedException('Usuário não encontrado ou senha inválida'),
       );
 
-      expect(userRepository.findByNickname).toHaveBeenCalledWith('testuser');
+      expect(userRepository.findByEmailOrNickname).toHaveBeenCalledWith(
+        'testuser',
+      );
       expect(bcrypt.compare).toHaveBeenCalledWith(
         'plainpassword',
         'hashedpassword',
@@ -103,13 +123,26 @@ describe('ValidateUserUseCase', () => {
 
     it('deve validar diferentes tipos de usuário', async () => {
       // Arrange - Admin User
-      const adminUser = new User(1, 'admin', 'hashedpassword', UserRole.ADMIN);
-      userRepository.findByNickname.mockResolvedValue(adminUser);
+      const adminUser = new User(
+        1,
+        'admin',
+        'hashedpassword',
+        UserRole.ADMIN,
+        'admin@example.com',
+        'Admin User',
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
+      userRepository.findByEmailOrNickname.mockResolvedValue(adminUser);
       mockedBcrypt.compare.mockResolvedValue(true as never);
 
       // Act
       const result = await useCase.execute({
-        nickname: 'admin',
+        emailOrNickname: 'admin',
         password: 'plainpassword',
       });
 
@@ -125,13 +158,21 @@ describe('ValidateUserUseCase', () => {
         'assistant',
         'hashedpassword',
         UserRole.ASSISTANT,
+        'assistant@example.com',
+        'Assistant User',
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
-      userRepository.findByNickname.mockResolvedValue(assistantUser);
+      userRepository.findByEmailOrNickname.mockResolvedValue(assistantUser);
       mockedBcrypt.compare.mockResolvedValue(true as never);
 
       // Act
       const result = await useCase.execute({
-        nickname: 'assistant',
+        emailOrNickname: 'assistant',
         password: 'plainpassword',
       });
 
