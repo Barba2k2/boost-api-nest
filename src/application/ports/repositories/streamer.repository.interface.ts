@@ -13,6 +13,7 @@ export interface UpdateStreamerData {
   points?: number;
   platforms?: string[];
   streamDays?: string[];
+  isOnline?: boolean;
 }
 
 export interface IStreamerRepository {
@@ -23,4 +24,6 @@ export interface IStreamerRepository {
   update(id: number, data: UpdateStreamerData): Promise<Streamer>;
   delete(id: number): Promise<void>;
   addPoints(id: number, points: number): Promise<Streamer>;
+  updateOnlineStatus(id: number, isOnline: boolean): Promise<Streamer>;
+  findOnlineStreamers(): Promise<Streamer[]>;
 }
