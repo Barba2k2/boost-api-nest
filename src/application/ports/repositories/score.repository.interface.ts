@@ -1,5 +1,7 @@
 import { Score } from '@domain/entities/score.entity';
 
+export const SCORE_REPOSITORY_TOKEN = Symbol('IScoreRepository');
+
 export interface CreateScoreData {
   streamerId: number;
   points: number;
