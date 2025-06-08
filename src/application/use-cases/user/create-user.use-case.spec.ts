@@ -22,6 +22,7 @@ describe('CreateUserUseCase', () => {
     findByNickname: jest.fn(),
     updateTokens: jest.fn(),
     existsByNickname: jest.fn(),
+    existsByEmail: jest.fn(),
   };
 
   const mockStreamerRepository = {
@@ -32,6 +33,8 @@ describe('CreateUserUseCase', () => {
     update: jest.fn(),
     delete: jest.fn(),
     addPoints: jest.fn(),
+    updateOnlineStatus: jest.fn(),
+    findOnlineStreamers: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -60,16 +63,26 @@ describe('CreateUserUseCase', () => {
 
   describe('execute', () => {
     const validCommand: CreateUserCommand = {
+      fullName: 'Test User',
       nickname: 'testuser',
+      email: 'test@example.com',
       password: 'hashedpassword',
       role: UserRole.USER,
     };
 
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+    const mockUser = new User(
+      1,
+      'testuser',
+      'hashedpassword',
+      UserRole.USER,
+      'test@example.com',
+      'Test User',
+    );
 
     it('deve criar um usuário USER e também um streamer', async () => {
       // Arrange
       userRepository.existsByNickname.mockResolvedValue(false);
+      userRepository.existsByEmail.mockResolvedValue(false);
       userRepository.create.mockResolvedValue(mockUser);
       streamerRepository.create.mockResolvedValue({} as any);
 
@@ -96,9 +109,12 @@ describe('CreateUserUseCase', () => {
         'testuser',
         'hashedpassword',
         UserRole.ADMIN,
+        'test@example.com',
+        'Test User',
       );
 
       userRepository.existsByNickname.mockResolvedValue(false);
+      userRepository.existsByEmail.mockResolvedValue(false);
       userRepository.create.mockResolvedValue(adminUser);
       streamerRepository.create.mockResolvedValue({} as any);
 
@@ -125,9 +141,12 @@ describe('CreateUserUseCase', () => {
         'testuser',
         'hashedpassword',
         UserRole.ASSISTANT,
+        'test@example.com',
+        'Test User',
       );
 
       userRepository.existsByNickname.mockResolvedValue(false);
+      userRepository.existsByEmail.mockResolvedValue(false);
       userRepository.create.mockResolvedValue(assistantUser);
 
       // Act
@@ -143,10 +162,11 @@ describe('CreateUserUseCase', () => {
     it('deve lançar ConflictException quando usuário já existe', async () => {
       // Arrange
       userRepository.existsByNickname.mockResolvedValue(true);
+      userRepository.existsByEmail.mockResolvedValue(false);
 
       // Act & Assert
       await expect(useCase.execute(validCommand)).rejects.toThrow(
-        new ConflictException('Usuário já existe'),
+        new ConflictException('Nickname já está em uso'),
       );
 
       expect(userRepository.existsByNickname).toHaveBeenCalledWith('testuser');

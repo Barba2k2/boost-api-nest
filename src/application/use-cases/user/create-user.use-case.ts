@@ -10,7 +10,9 @@ import {
 } from '../../ports/repositories/user.repository.interface';
 
 export interface CreateUserCommand {
+  fullName: string;
   nickname: string;
+  email: string;
   password: string; // Já deve estar hasheado
   role: UserRole;
 }
@@ -25,17 +27,27 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(command: CreateUserCommand): Promise<User> {
-    // Verificar se o usuário já existe
-    const existingUser = await this.userRepository.existsByNickname(
+    // Verificar se o usuário já existe por nickname
+    const existingUserByNickname = await this.userRepository.existsByNickname(
       command.nickname,
     );
-    if (existingUser) {
-      throw new ConflictException('Usuário já existe');
+    if (existingUserByNickname) {
+      throw new ConflictException('Nickname já está em uso');
+    }
+
+    // Verificar se o email já existe
+    const existingUserByEmail = await this.userRepository.existsByEmail(
+      command.email,
+    );
+    if (existingUserByEmail) {
+      throw new ConflictException('Email já está em uso');
     }
 
     // Criar o usuário
     const user = await this.userRepository.create({
+      fullName: command.fullName,
       nickname: command.nickname,
+      email: command.email,
       password: command.password,
       role: command.role,
     });
