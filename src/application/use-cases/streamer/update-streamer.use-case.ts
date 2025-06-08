@@ -8,9 +8,11 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 export interface UpdateStreamerCommand {
   id: number;
-  points?: number;
+  nickname?: string;
   platforms?: string[];
   streamDays?: string[];
+  startTime?: string;
+  endTime?: string;
 }
 
 @Injectable()
@@ -30,11 +32,14 @@ export class UpdateStreamerUseCase {
     }
 
     const updateData: UpdateStreamerData = {};
-    if (command.points !== undefined) updateData.points = command.points;
+    if (command.nickname !== undefined) updateData.nickname = command.nickname;
     if (command.platforms !== undefined)
       updateData.platforms = command.platforms;
     if (command.streamDays !== undefined)
       updateData.streamDays = command.streamDays;
+    if (command.startTime !== undefined)
+      updateData.startTime = command.startTime;
+    if (command.endTime !== undefined) updateData.endTime = command.endTime;
 
     return await this.streamerRepository.update(command.id, updateData);
   }
