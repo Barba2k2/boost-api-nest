@@ -14,6 +14,7 @@ describe('GetAllStreamersUseCase', () => {
       100,
       ['Twitch'],
       ['Monday', 'Tuesday'],
+      false,
       new Date('2024-01-01'),
       new Date('2024-01-01'),
     ),
@@ -23,6 +24,7 @@ describe('GetAllStreamersUseCase', () => {
       250,
       ['YouTube', 'Kick'],
       ['Wednesday', 'Friday'],
+      true,
       new Date('2024-01-02'),
       new Date('2024-01-02'),
     ),
@@ -32,6 +34,7 @@ describe('GetAllStreamersUseCase', () => {
       50,
       ['Facebook Gaming'],
       ['Sunday'],
+      false,
       new Date('2024-01-03'),
       new Date('2024-01-03'),
     ),
@@ -164,6 +167,7 @@ describe('GetAllStreamersUseCase', () => {
           0,
           [], // sem plataformas
           [], // sem dias de stream
+          false,
           new Date('2024-01-04'),
           new Date('2024-01-04'),
         ),
@@ -191,6 +195,7 @@ describe('GetAllStreamersUseCase', () => {
           -50, // pontos negativos
           ['Twitch'],
           ['Monday'],
+          false,
           new Date('2024-01-05'),
           new Date('2024-01-05'),
         ),
