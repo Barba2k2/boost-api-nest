@@ -16,6 +16,7 @@ describe('CreateStreamerUseCase', () => {
     100,
     ['Twitch', 'YouTube'],
     ['Monday', 'Tuesday'],
+    false,
     new Date('2024-01-01'),
     new Date('2024-01-01'),
   );
