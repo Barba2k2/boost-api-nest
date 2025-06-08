@@ -3,6 +3,8 @@ import {
   DailyPointsResult,
   GetDailyPointsUseCase,
 } from '@application/use-cases/streamer/get-daily-points.use-case';
+import { GetScoreReportUseCase } from '@application/use-cases/streamer/get-score-report.use-case';
+import { GetScoresByHourUseCase } from '@application/use-cases/streamer/get-scores-by-hour.use-case';
 import { Score } from '@domain/entities/score.entity';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -14,6 +16,8 @@ describe('ScoreController', () => {
   let controller: ScoreController;
   let createScoreUseCase: jest.Mocked<CreateScoreUseCase>;
   let getDailyPointsUseCase: jest.Mocked<GetDailyPointsUseCase>;
+  let getScoreReportUseCase: jest.Mocked<GetScoreReportUseCase>;
+  let getScoresByHourUseCase: jest.Mocked<GetScoresByHourUseCase>;
   let rateLimitService: jest.Mocked<RateLimitService>;
 
   const mockCreateScoreUseCase = {
@@ -21,6 +25,14 @@ describe('ScoreController', () => {
   };
 
   const mockGetDailyPointsUseCase = {
+    execute: jest.fn(),
+  };
+
+  const mockGetScoreReportUseCase = {
+    execute: jest.fn(),
+  };
+
+  const mockGetScoresByHourUseCase = {
     execute: jest.fn(),
   };
 
@@ -41,6 +53,14 @@ describe('ScoreController', () => {
           useValue: mockGetDailyPointsUseCase,
         },
         {
+          provide: GetScoreReportUseCase,
+          useValue: mockGetScoreReportUseCase,
+        },
+        {
+          provide: GetScoresByHourUseCase,
+          useValue: mockGetScoresByHourUseCase,
+        },
+        {
           provide: RateLimitService,
           useValue: mockRateLimitService,
         },
@@ -50,6 +70,8 @@ describe('ScoreController', () => {
     controller = module.get<ScoreController>(ScoreController);
     createScoreUseCase = module.get(CreateScoreUseCase);
     getDailyPointsUseCase = module.get(GetDailyPointsUseCase);
+    getScoreReportUseCase = module.get(GetScoreReportUseCase);
+    getScoresByHourUseCase = module.get(GetScoresByHourUseCase);
     rateLimitService = module.get(RateLimitService);
   });
 
@@ -62,17 +84,13 @@ describe('ScoreController', () => {
       // Arrange
       const createScoreDto = {
         streamerId: 1,
-        points: 5,
-        reason: 'Completou stream de 2 horas',
+        date: '2025-04-29',
+        hour: 18,
+        minute: 50,
+        points: 1,
       };
 
-      const mockScore = new Score(
-        1,
-        1,
-        5,
-        'Completou stream de 2 horas',
-        new Date('2025-01-04T15:30:00Z'),
-      );
+      const mockScore = new Score(1, 1, 1, new Date('2025-04-29T18:50:00Z'));
 
       mockCreateScoreUseCase.execute.mockResolvedValue(mockScore);
 
@@ -82,16 +100,17 @@ describe('ScoreController', () => {
       // Assert
       expect(createScoreUseCase.execute).toHaveBeenCalledWith({
         streamerId: 1,
-        points: 5,
-        reason: 'Completou stream de 2 horas',
+        date: new Date('2025-04-29T00:00:00.000Z'),
+        hour: 18,
+        minute: 50,
+        points: 1,
       });
 
       expect(result).toEqual({
         id: 1,
         streamerId: 1,
-        points: 5,
-        reason: 'Completou stream de 2 horas',
-        createdAt: new Date('2025-01-04T15:30:00Z'),
+        points: 1,
+        createdAt: new Date('2025-04-29T18:50:00Z'),
       });
     });
 
@@ -99,8 +118,10 @@ describe('ScoreController', () => {
       // Arrange
       const createScoreDto = {
         streamerId: 1,
+        date: '2025-04-29',
+        hour: 18,
+        minute: 50,
         points: 50,
-        reason: 'Tentativa de pontuação',
       };
 
       const error = new BadRequestException(
