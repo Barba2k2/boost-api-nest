@@ -3,7 +3,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 // Use Cases
 import { CreateScoreUseCase } from './use-cases/streamer/create-score.use-case';
-import { CreateStreamerUseCase } from './use-cases/streamer/create-streamer.use-case';
+
 import { GetAllStreamersUseCase } from './use-cases/streamer/get-all-streamers.use-case';
 import { GetDailyPointsUseCase } from './use-cases/streamer/get-daily-points.use-case';
 import { GetOnlineStreamersUseCase } from './use-cases/streamer/get-online-streamers.use-case';
@@ -30,7 +30,6 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
   controllers: [StreamerController, ScoreController],
   providers: [
     // Use Cases
-    CreateStreamerUseCase,
     GetAllStreamersUseCase,
     GetOnlineStreamersUseCase,
     UpdateStreamerUseCase,
@@ -49,7 +48,6 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
     },
   ],
   exports: [
-    CreateStreamerUseCase,
     GetAllStreamersUseCase,
     GetOnlineStreamersUseCase,
     UpdateStreamerUseCase,

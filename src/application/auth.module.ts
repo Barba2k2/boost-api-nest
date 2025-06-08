@@ -17,7 +17,6 @@ import { ValidateUserUseCase } from './use-cases/auth/validate-user.use-case';
 // Casos de uso do User Module
 import { CreateUserUseCase } from './use-cases/user/create-user.use-case';
 import { UpdateLastLoginUseCase } from './use-cases/user/update-last-login.use-case';
-import { UpdateUserTokensUseCase } from './use-cases/user/update-user-tokens.use-case';
 
 // Repository Tokens
 import { STREAMER_REPOSITORY_TOKEN } from './ports/repositories/streamer.repository.interface';
@@ -70,7 +69,6 @@ import { PrismaModule } from '../prisma/prisma.module';
     // User Use Cases (dependências)
     CreateUserUseCase,
     UpdateLastLoginUseCase,
-    UpdateUserTokensUseCase,
 
     // Repository Implementations
     {
