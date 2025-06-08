@@ -17,6 +17,7 @@ describe('UpdateStreamerUseCase', () => {
     100,
     ['Twitch'],
     ['Monday', 'Tuesday'],
+    false,
     new Date('2024-01-01'),
     new Date('2024-01-01'),
   );
@@ -27,6 +28,7 @@ describe('UpdateStreamerUseCase', () => {
     200,
     ['Twitch', 'YouTube'],
     ['Monday', 'Wednesday'],
+    true,
     new Date('2024-01-01'),
     new Date('2024-01-02'),
   );
