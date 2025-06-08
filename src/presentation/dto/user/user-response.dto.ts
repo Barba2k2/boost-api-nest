@@ -1,12 +1,21 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { User, UserRole } from '@domain/entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UserResponseDto {
   @ApiProperty({ example: 1, description: 'ID do usuário' })
   id: number;
 
-  @ApiProperty({ example: 'john_doe', description: 'Nickname do usuário' })
+  @ApiProperty({
+    example: 'João Silva',
+    description: 'Nome completo do usuário',
+  })
+  fullName: string;
+
+  @ApiProperty({ example: 'joaosilva', description: 'Nickname do usuário' })
   nickname: string;
+
+  @ApiProperty({ example: 'joao@example.com', description: 'Email do usuário' })
+  email: string;
 
   @ApiProperty({
     enum: UserRole,
@@ -14,6 +23,13 @@ export class UserResponseDto {
     description: 'Papel do usuário no sistema',
   })
   role: UserRole;
+
+  @ApiProperty({
+    example: '2023-01-01T12:00:00.000Z',
+    description: 'Data e hora do último login',
+    required: false,
+  })
+  lastLogin?: Date;
 
   @ApiProperty({
     example: '2023-01-01T00:00:00.000Z',
@@ -32,8 +48,11 @@ export class UserResponseDto {
   static fromDomain(user: User): UserResponseDto {
     const dto = new UserResponseDto();
     dto.id = user.id;
+    dto.fullName = user.fullName || '';
     dto.nickname = user.nickname;
+    dto.email = user.email || '';
     dto.role = user.role;
+    dto.lastLogin = user.lastLogin;
     dto.createdAt = user.createdAt;
     dto.updatedAt = user.updatedAt;
     return dto;
