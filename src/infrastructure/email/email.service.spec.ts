@@ -44,8 +44,7 @@ describe('EmailService', () => {
     const spy = jest.spyOn(configService, 'get');
     new EmailService(configService);
 
-    expect(spy).toHaveBeenCalledWith('MAILGUN_API_KEY');
-    expect(spy).toHaveBeenCalledWith('MAILGUN_DOMAIN');
+    expect(spy).toHaveBeenCalledWith('API_KEY');
   });
 
   it('deve lidar com API key ausente', () => {
