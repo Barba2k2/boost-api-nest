@@ -30,6 +30,27 @@ export class StreamerResponseDto {
   isOnline: boolean;
 
   @ApiProperty({
+    example: 'meu_nick_twitch',
+    description: 'Nick do streamer na plataforma',
+    required: false,
+  })
+  nickname?: string;
+
+  @ApiProperty({
+    example: '20:00',
+    description: 'Horário de início das streams',
+    required: false,
+  })
+  startTime?: string;
+
+  @ApiProperty({
+    example: '00:00',
+    description: 'Horário de fim das streams',
+    required: false,
+  })
+  endTime?: string;
+
+  @ApiProperty({
     example: '2023-01-01T00:00:00.000Z',
     description: 'Data de criação',
     required: false,
@@ -51,6 +72,9 @@ export class StreamerResponseDto {
     dto.platforms = streamer.platforms;
     dto.streamDays = streamer.streamDays;
     dto.isOnline = streamer.isOnline;
+    dto.nickname = streamer.nickname;
+    dto.startTime = streamer.startTime;
+    dto.endTime = streamer.endTime;
     dto.createdAt = streamer.createdAt;
     dto.updatedAt = streamer.updatedAt;
     return dto;
