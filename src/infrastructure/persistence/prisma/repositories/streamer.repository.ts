@@ -27,6 +27,7 @@ export class StreamerRepository implements IStreamerRepository {
   async findById(id: number): Promise<Streamer | null> {
     const streamer = await this.prisma.streamer.findUnique({
       where: { id },
+      include: { user: true },
     });
 
     return streamer ? this.toDomain(streamer) : null;
@@ -41,7 +42,9 @@ export class StreamerRepository implements IStreamerRepository {
   }
 
   async findAll(): Promise<Streamer[]> {
-    const streamers = await this.prisma.streamer.findMany();
+    const streamers = await this.prisma.streamer.findMany({
+      include: { user: true },
+    });
     return streamers.map((streamer) => this.toDomain(streamer));
   }
 
@@ -49,12 +52,21 @@ export class StreamerRepository implements IStreamerRepository {
     const updatedStreamer = await this.prisma.streamer.update({
       where: { id },
       data: {
-        points: data.points,
         platforms: data.platforms,
         streamDays: data.streamDays,
+        usualStartTime: data.startTime,
+        usualEndTime: data.endTime,
         isOnline: data.isOnline,
       },
     });
+
+    // Se nickname foi fornecido, atualizar na tabela User
+    if (data.nickname !== undefined) {
+      await this.prisma.user.update({
+        where: { id: updatedStreamer.userId },
+        data: { nickname: data.nickname },
+      });
+    }
 
     return this.toDomain(updatedStreamer);
   }
@@ -94,6 +106,7 @@ export class StreamerRepository implements IStreamerRepository {
       where: {
         isOnline: true,
       },
+      include: { user: true },
     });
 
     return streamers.map((streamer) => this.toDomain(streamer));
@@ -109,6 +122,9 @@ export class StreamerRepository implements IStreamerRepository {
       prismaStreamer.isOnline || false,
       prismaStreamer.createdAt,
       prismaStreamer.updatedAt,
+      prismaStreamer.user?.nickname,
+      prismaStreamer.usualStartTime,
+      prismaStreamer.usualEndTime,
     );
   }
 }

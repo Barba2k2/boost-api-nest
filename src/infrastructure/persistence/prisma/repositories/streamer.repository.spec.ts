@@ -14,6 +14,9 @@ describe('StreamerRepository', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
+    user: {
+      update: jest.fn(),
+    },
   };
 
   const mockPrismaStreamer = {
@@ -115,6 +118,7 @@ describe('StreamerRepository', () => {
       // Assert
       expect(mockPrismaService.streamer.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
+        include: { user: true },
       });
       expect(result).toBeDefined();
       expect(result!.id).toBe(1);
@@ -175,7 +179,9 @@ describe('StreamerRepository', () => {
       const result = await repository.findAll();
 
       // Assert
-      expect(mockPrismaService.streamer.findMany).toHaveBeenCalled();
+      expect(mockPrismaService.streamer.findMany).toHaveBeenCalledWith({
+        include: { user: true },
+      });
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe(1);
       expect(result[1].id).toBe(2);
@@ -197,12 +203,21 @@ describe('StreamerRepository', () => {
     it('deve atualizar um streamer com sucesso', async () => {
       // Arrange
       const updateData = {
-        points: 200,
+        nickname: 'novo_nick',
         platforms: ['twitch', 'youtube'],
         streamDays: ['tuesday', 'friday'],
+        startTime: '20:00',
+        endTime: '00:00',
       };
-      const updatedStreamer = { ...mockPrismaStreamer, ...updateData };
+      const updatedStreamer = {
+        ...mockPrismaStreamer,
+        platforms: ['twitch', 'youtube'],
+        streamDays: ['tuesday', 'friday'],
+        usualStartTime: '20:00',
+        usualEndTime: '00:00',
+      };
       mockPrismaService.streamer.update.mockResolvedValue(updatedStreamer);
+      mockPrismaService.user.update.mockResolvedValue({});
 
       // Act
       const result = await repository.update(1, updateData);
@@ -211,20 +226,26 @@ describe('StreamerRepository', () => {
       expect(mockPrismaService.streamer.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: {
-          points: 200,
           platforms: ['twitch', 'youtube'],
           streamDays: ['tuesday', 'friday'],
+          usualStartTime: '20:00',
+          usualEndTime: '00:00',
+          isOnline: undefined,
         },
       });
-      expect(result.points).toBe(200);
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { nickname: 'novo_nick' },
+      });
       expect(result.platforms).toEqual(['twitch', 'youtube']);
     });
 
     it('deve atualizar apenas campos fornecidos', async () => {
       // Arrange
-      const updateData = { points: 300 };
-      const updatedStreamer = { ...mockPrismaStreamer, points: 300 };
+      const updateData = { nickname: 'novo_nick' };
+      const updatedStreamer = { ...mockPrismaStreamer };
       mockPrismaService.streamer.update.mockResolvedValue(updatedStreamer);
+      mockPrismaService.user.update.mockResolvedValue({});
 
       // Act
       const result = await repository.update(1, updateData);
@@ -233,12 +254,17 @@ describe('StreamerRepository', () => {
       expect(mockPrismaService.streamer.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: {
-          points: 300,
           platforms: undefined,
           streamDays: undefined,
+          usualStartTime: undefined,
+          usualEndTime: undefined,
+          isOnline: undefined,
         },
       });
-      expect(result.points).toBe(300);
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { nickname: 'novo_nick' },
+      });
     });
   });
 
