@@ -139,5 +139,72 @@ describe('ScoreRateLimitInterceptor', () => {
         });
       }
     });
+
+    it('deve lançar erro quando streamerId é null', async () => {
+      // Arrange
+      const mockContextWithNullStreamerId = {
+        switchToHttp: () => ({
+          getRequest: () => ({
+            body: { streamerId: null },
+          }),
+        }),
+      } as ExecutionContext;
+
+      // Act & Assert
+      await expect(
+        interceptor.intercept(mockContextWithNullStreamerId, mockCallHandler),
+      ).rejects.toThrow(HttpException);
+
+      await expect(
+        interceptor.intercept(mockContextWithNullStreamerId, mockCallHandler),
+      ).rejects.toThrow('streamerId é obrigatório');
+    });
+
+    it('deve lançar erro quando streamerId é undefined', async () => {
+      // Arrange
+      const mockContextWithUndefinedStreamerId = {
+        switchToHttp: () => ({
+          getRequest: () => ({
+            body: { streamerId: undefined },
+          }),
+        }),
+      } as ExecutionContext;
+
+      // Act & Assert
+      await expect(
+        interceptor.intercept(
+          mockContextWithUndefinedStreamerId,
+          mockCallHandler,
+        ),
+      ).rejects.toThrow(HttpException);
+
+      await expect(
+        interceptor.intercept(
+          mockContextWithUndefinedStreamerId,
+          mockCallHandler,
+        ),
+      ).rejects.toThrow('streamerId é obrigatório');
+    });
+
+    it('deve verificar função keyGenerator corretamente', async () => {
+      // Arrange
+      let capturedKeyGenerator: Function | undefined;
+      mockRateLimitService.checkRateLimit.mockImplementation((key, options) => {
+        capturedKeyGenerator = options.keyGenerator;
+        return Promise.resolve({
+          allowed: true,
+          remainingRequests: 0,
+          resetTime: Date.now() + 360000,
+          totalRequests: 1,
+        });
+      });
+
+      // Act
+      await interceptor.intercept(mockExecutionContext, mockCallHandler);
+
+      // Assert
+      expect(capturedKeyGenerator).toBeDefined();
+      expect(capturedKeyGenerator!('test-id')).toBe('score:creation:test-id');
+    });
   });
 });
