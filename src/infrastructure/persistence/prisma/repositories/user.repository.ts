@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   CreateUserData,
   IUserRepository,
+  UpdateProfileData,
   UpdateTokensData,
 } from '../../../../application/ports/repositories/user.repository.interface';
 import { PrismaService } from '../../../../prisma/prisma.service';
@@ -88,6 +89,23 @@ export class UserRepository implements IUserRepository {
       where: { id },
       data: {
         password: hashedPassword,
+      },
+    });
+
+    return this.toDomain(updatedUser);
+  }
+
+  async updateProfile(
+    id: number,
+    profileData: UpdateProfileData,
+  ): Promise<User> {
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        fullName: profileData.fullName,
+        nickname: profileData.nickname,
+        email: profileData.email,
+        phone: profileData.phone,
       },
     });
 
