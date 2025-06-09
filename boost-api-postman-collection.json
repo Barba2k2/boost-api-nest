@@ -762,6 +762,41 @@
           "response": []
         },
         {
+          "name": "🌐 PÚBLICO - Relatório por Nickname/Canal",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/scores/public/report-by-nickname/:nickname?startDateTime=2025-01-06T20:00:00&endDateTime=2025-01-11T23:59:59",
+              "host": ["{{base_url}}"],
+              "path": ["scores", "public", "report-by-nickname", ":nickname"],
+              "query": [
+                {
+                  "key": "startDateTime",
+                  "value": "2025-01-06T20:00:00",
+                  "description": "Data e hora de início (formato: YYYY-MM-DDTHH:mm:ss) - Obrigatório"
+                },
+                {
+                  "key": "endDateTime",
+                  "value": "2025-01-11T23:59:59",
+                  "description": "Data e hora de fim (formato: YYYY-MM-DDTHH:mm:ss) - Obrigatório"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "nickname",
+                  "value": "aggeotv",
+                  "description": "Nickname/canal do streamer"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "🔒 ADMIN - Ranking Semanal (Privado)",
           "request": {
             "method": "GET",
