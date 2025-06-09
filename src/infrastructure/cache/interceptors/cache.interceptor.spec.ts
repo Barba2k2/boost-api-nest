@@ -184,15 +184,19 @@ describe('CacheInterceptor', () => {
       expect(cacheManager.get).toHaveBeenCalledWith('test-key');
       expect(mockCallHandler.handle).toHaveBeenCalled();
 
-      // Verificar se o resultado foi cacheado
-      result.subscribe(() => {
-        setTimeout(() => {
-          expect(cacheManager.set).toHaveBeenCalledWith(
-            'test-key',
-            methodResult,
-            600000,
-          );
-        }, 0);
+      // Aguardar o observable completar
+      await new Promise<void>((resolve) => {
+        result.subscribe({
+          complete: () => {
+            // Verificar se o resultado foi cacheado após o observable completar
+            expect(cacheManager.set).toHaveBeenCalledWith(
+              'test-key',
+              methodResult,
+              600000,
+            );
+            resolve();
+          },
+        });
       });
     });
 
@@ -310,10 +314,14 @@ describe('CacheInterceptor', () => {
       const result = await interceptor.intercept(mockContext, mockCallHandler);
 
       // Assert
-      result.subscribe(() => {
-        setTimeout(() => {
-          expect(cacheManager.set).not.toHaveBeenCalled();
-        }, 0);
+      await new Promise<void>((resolve) => {
+        result.subscribe({
+          next: () => {},
+          complete: () => {
+            expect(cacheManager.set).not.toHaveBeenCalled();
+            resolve();
+          },
+        });
       });
     });
 
@@ -345,14 +353,18 @@ describe('CacheInterceptor', () => {
       const result = await interceptor.intercept(mockContext, mockCallHandler);
 
       // Assert
-      result.subscribe(() => {
-        setTimeout(() => {
-          expect(cacheManager.set).toHaveBeenCalledWith(
-            'test-key',
-            methodResult,
-            120000, // 120 segundos * 1000 = 120000 milissegundos
-          );
-        }, 0);
+      await new Promise<void>((resolve) => {
+        result.subscribe({
+          next: () => {},
+          complete: () => {
+            expect(cacheManager.set).toHaveBeenCalledWith(
+              'test-key',
+              methodResult,
+              120000, // 120 segundos * 1000 = 120000 milissegundos
+            );
+            resolve();
+          },
+        });
       });
     });
   });
