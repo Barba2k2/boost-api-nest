@@ -333,4 +333,135 @@ describe('ScoreRepository', () => {
       expect(result).toBe(mockReport);
     });
   });
+
+  describe('getScoresByDateGroupedByHour', () => {
+    it('deve delegar para o repositório de relatórios', async () => {
+      // Arrange
+      const date = new Date('2024-01-01');
+      const mockData = [{ streamerId: 1, nickname: 'test', pointsByHour: {} }];
+      mockScoreReportRepository.getScoresByDateGroupedByHour.mockResolvedValue(
+        mockData,
+      );
+
+      // Act
+      const result = await repository.getScoresByDateGroupedByHour(date);
+
+      // Assert
+      expect(
+        mockScoreReportRepository.getScoresByDateGroupedByHour,
+      ).toHaveBeenCalledWith(date);
+      expect(result).toBe(mockData);
+    });
+  });
+
+  describe('getWeeklyRanking', () => {
+    it('deve delegar para o repositório de relatórios', async () => {
+      // Arrange
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-07');
+      const mockRanking = [{ position: 1, streamerId: 1, totalPoints: 100 }];
+      mockScoreReportRepository.getWeeklyRanking.mockResolvedValue(mockRanking);
+
+      // Act
+      const result = await repository.getWeeklyRanking(startDate, endDate);
+
+      // Assert
+      expect(mockScoreReportRepository.getWeeklyRanking).toHaveBeenCalledWith(
+        startDate,
+        endDate,
+      );
+      expect(result).toBe(mockRanking);
+    });
+  });
+
+  describe('getWeeklyAverage', () => {
+    it('deve delegar para o repositório de relatórios', async () => {
+      // Arrange
+      const streamerId = 1;
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-07');
+      const mockAverage = {
+        streamerId: 1,
+        totalPoints: 100,
+        averagePoints: 14.3,
+      };
+      mockScoreReportRepository.getWeeklyAverage.mockResolvedValue(mockAverage);
+
+      // Act
+      const result = await repository.getWeeklyAverage(
+        streamerId,
+        startDate,
+        endDate,
+      );
+
+      // Assert
+      expect(mockScoreReportRepository.getWeeklyAverage).toHaveBeenCalledWith(
+        streamerId,
+        startDate,
+        endDate,
+      );
+      expect(result).toBe(mockAverage);
+    });
+  });
+
+  describe('getDailyScoresForWeek', () => {
+    it('deve delegar para o repositório de relatórios', async () => {
+      // Arrange
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-01-07');
+      const mockDailyScores = [
+        { date: new Date(), dayOfWeek: 'Monday', streamers: [] },
+      ];
+      mockScoreReportRepository.getDailyScoresForWeek.mockResolvedValue(
+        mockDailyScores,
+      );
+
+      // Act
+      const result = await repository.getDailyScoresForWeek(startDate, endDate);
+
+      // Assert
+      expect(
+        mockScoreReportRepository.getDailyScoresForWeek,
+      ).toHaveBeenCalledWith(startDate, endDate);
+      expect(result).toBe(mockDailyScores);
+    });
+  });
+
+  describe('toDomain', () => {
+    it('deve converter dados do Prisma para entidade de domínio corretamente', async () => {
+      // Arrange
+      const scoreData = {
+        streamerId: 1,
+        date: new Date('2024-01-01T10:30:00Z'),
+        hour: 10,
+        minute: 30,
+        points: 25,
+      };
+      mockScoreValidationRepository.validateScoreCreation.mockResolvedValue(
+        undefined,
+      );
+      mockPrismaService.score.create.mockResolvedValue(mockPrismaScore);
+
+      // Act
+      const result = await repository.create(scoreData);
+
+      // Assert
+      expect(result.id).toBe(1);
+      expect(result.streamerId).toBe(1);
+      expect(result.points).toBe(5); // Valor do mock
+      expect(result.createdAt).toEqual(new Date('2024-01-01T10:30:00Z'));
+    });
+
+    it('deve converter corretamente score com pontos negativos', async () => {
+      // Arrange
+      const negativeScore = { ...mockPrismaScore, points: -10 };
+      mockPrismaService.score.findUnique.mockResolvedValue(negativeScore);
+
+      // Act
+      const result = await repository.findById(1);
+
+      // Assert
+      expect(result?.points).toBe(-10);
+    });
+  });
 });
