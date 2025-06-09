@@ -142,7 +142,7 @@ export class WebSocketCacheService {
     const roomKey = `${this.ROOM_PREFIX}:${roomId}`;
     const room = await this.getRoom(roomId);
 
-    if (room) {
+    if (room && room.connections) {
       room.connections = room.connections.filter((id) => id !== socketId);
 
       if (room.connections.length === 0) {
@@ -249,7 +249,8 @@ export class WebSocketCacheService {
    */
   private async getUserSockets(userId: number): Promise<string[]> {
     const userSocketsKey = `${this.USER_SOCKETS_PREFIX}:${userId}`;
-    return (await this.redisService.get<string[]>(userSocketsKey)) || [];
+    const sockets = await this.redisService.get<string[]>(userSocketsKey);
+    return Array.isArray(sockets) ? sockets : [];
   }
 
   /**
@@ -292,6 +293,7 @@ export class WebSocketCacheService {
    */
   private async getSocketRooms(socketId: string): Promise<string[]> {
     const socketRoomsKey = `${this.SOCKET_PREFIX}:${socketId}:rooms`;
-    return (await this.redisService.get<string[]>(socketRoomsKey)) || [];
+    const rooms = await this.redisService.get<string[]>(socketRoomsKey);
+    return Array.isArray(rooms) ? rooms : [];
   }
 }

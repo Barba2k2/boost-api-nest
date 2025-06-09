@@ -308,7 +308,7 @@ describe('RedisService', () => {
 
       // Assert
       expect(cacheManager.get).toHaveBeenCalledWith(key);
-      expect(cacheManager.set).toHaveBeenCalledWith(key, 6);
+      expect(cacheManager.set).toHaveBeenCalledWith(key, 6, undefined);
       expect(result).toBe(6);
     });
 
@@ -322,7 +322,7 @@ describe('RedisService', () => {
 
       // Assert
       expect(cacheManager.get).toHaveBeenCalledWith(key);
-      expect(cacheManager.set).toHaveBeenCalledWith(key, 1);
+      expect(cacheManager.set).toHaveBeenCalledWith(key, 1, undefined);
       expect(result).toBe(1);
     });
 
@@ -335,7 +335,7 @@ describe('RedisService', () => {
       const result = await service.incr(key);
 
       // Assert
-      expect(cacheManager.set).toHaveBeenCalledWith(key, 1);
+      expect(cacheManager.set).toHaveBeenCalledWith(key, 1, undefined);
       expect(result).toBe(1);
     });
   });
