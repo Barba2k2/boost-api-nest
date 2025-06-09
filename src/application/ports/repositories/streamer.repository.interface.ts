@@ -22,6 +22,7 @@ export interface IStreamerRepository {
   create(streamerData: CreateStreamerData): Promise<Streamer>;
   findById(id: number): Promise<Streamer | null>;
   findByUserId(userId: number): Promise<Streamer | null>;
+  findByNickname(nickname: string): Promise<Streamer | null>;
   findAll(): Promise<Streamer[]>;
   update(id: number, data: UpdateStreamerData): Promise<Streamer>;
   delete(id: number): Promise<void>;
