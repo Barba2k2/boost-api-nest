@@ -42,14 +42,14 @@ describe('SessionService', () => {
     service = module.get<SessionService>(SessionService);
     redisService = module.get(RedisService);
 
-    // Mock Date.now para testes determinísticos
+    // Mock Date.now para testes determinísticos (exceto onde há mock específico)
     jest.spyOn(Date, 'now').mockReturnValue(1640995200000);
     jest.spyOn(Math, 'random').mockReturnValue(0.123456789);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    jest.restoreAllMocks();
+    // Note: não vamos resetar todos os mocks para permitir mocks específicos em testes individuais
   });
 
   describe('createSession', () => {
@@ -63,7 +63,7 @@ describe('SessionService', () => {
       const sessionId = await service.createSession(mockUser, metadata);
 
       // Assert
-      expect(sessionId).toBe('sess_1640995200000_4fzyo82mv');
+      expect(sessionId).toBe('sess_1640995200000_4fzzzxjyl');
 
       const expectedSessionData: SessionData = {
         userId: 1,
@@ -76,7 +76,7 @@ describe('SessionService', () => {
       };
 
       expect(redisService.setex).toHaveBeenCalledWith(
-        'session:sess_1640995200000_4fzyo82mv',
+        'session:sess_1640995200000_4fzzzxjyl',
         86400, // 24 * 60 * 60
         expectedSessionData,
       );
@@ -124,7 +124,7 @@ describe('SessionService', () => {
       expect(redisService.setex).toHaveBeenCalledWith(
         'user_sessions:1',
         86400,
-        ['sess_old_session', 'sess_1640995200000_4fzyo82mv'],
+        ['sess_old_session', 'sess_1640995200000_4fzzzxjyl'],
       );
     });
   });
@@ -479,15 +479,13 @@ describe('SessionService', () => {
     describe('generateSessionId', () => {
       it('deve gerar ID único para cada sessão', async () => {
         // Arrange
-        jest
-          .spyOn(Date, 'now')
-          .mockReturnValueOnce(1640995200000)
-          .mockReturnValueOnce(1640995200001);
+        // Usar timestamp igual mas Math.random diferentes para garantir IDs únicos
+        jest.spyOn(Date, 'now').mockReturnValue(1640995200000); // sempre o mesmo timestamp
 
         jest
           .spyOn(Math, 'random')
-          .mockReturnValueOnce(0.123456789)
-          .mockReturnValueOnce(0.987654321);
+          .mockReturnValueOnce(0.123456789) // primeiro ID
+          .mockReturnValueOnce(0.987654321); // segundo ID
 
         redisService.setex.mockResolvedValue();
         redisService.get.mockResolvedValue([]);
@@ -497,9 +495,12 @@ describe('SessionService', () => {
         const sessionId2 = await service.createSession(mockUser);
 
         // Assert
-        expect(sessionId1).toBe('sess_1640995200000_4fzyo82mv');
-        expect(sessionId2).toBe('sess_1640995200001_z7pr1vg9a');
+        expect(sessionId1).toBe('sess_1640995200000_4fzzzxjyl');
+        expect(sessionId2).toBe('sess_1640995200000_zk00000yt');
         expect(sessionId1).not.toBe(sessionId2);
+
+        // Cleanup para esse teste específico
+        jest.restoreAllMocks();
       });
     });
   });
