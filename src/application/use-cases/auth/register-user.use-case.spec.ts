@@ -178,5 +178,97 @@ describe('RegisterUserUseCase', () => {
       expect(bcrypt.hash).toHaveBeenCalledWith('plainpassword', 10);
       expect(createUserUseCase.execute).not.toHaveBeenCalled();
     });
+
+    it('deve lançar erro quando senhas não coincidem', async () => {
+      // Arrange
+      const invalidCommand = {
+        ...validCommand,
+        confirmPassword: 'differentpassword',
+      };
+
+      // Act & Assert
+      await expect(useCase.execute(invalidCommand)).rejects.toThrow(
+        'As senhas não coincidem',
+      );
+      expect(bcrypt.hash).not.toHaveBeenCalled();
+      expect(createUserUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('deve usar role USER como padrão quando não especificado', async () => {
+      // Arrange
+      const commandWithoutRole = {
+        fullName: 'Test User',
+        nickname: 'testuser',
+        email: 'test@example.com',
+        password: 'plainpassword',
+        confirmPassword: 'plainpassword',
+      };
+
+      mockedBcrypt.hash.mockResolvedValue('hashedpassword' as never);
+      createUserUseCase.execute.mockResolvedValue(mockUser);
+
+      // Act
+      const result = await useCase.execute(commandWithoutRole);
+
+      // Assert
+      expect(createUserUseCase.execute).toHaveBeenCalledWith({
+        fullName: 'Test User',
+        nickname: 'testuser',
+        email: 'test@example.com',
+        password: 'hashedpassword',
+        role: UserRole.USER, // Deve usar USER como padrão
+      });
+      expect(result).toEqual(mockUser);
+    });
+
+    it('deve continuar execução mesmo se envio de email falhar', async () => {
+      // Arrange
+      mockedBcrypt.hash.mockResolvedValue('hashedpassword' as never);
+      createUserUseCase.execute.mockResolvedValue(mockUser);
+      mockSendWelcomeEmailUseCase.execute.mockRejectedValue(
+        new Error('Email service error'),
+      );
+
+      const loggerSpy = jest
+        .spyOn(useCase['logger'], 'error')
+        .mockImplementation();
+
+      // Act
+      const result = await useCase.execute(validCommand);
+
+      // Assert
+      expect(result).toEqual(mockUser);
+      expect(mockSendWelcomeEmailUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        userName: 'Test User',
+      });
+
+      // Aguardar que o catch seja executado
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Falha ao enviar email de boas-vindas para test@example.com:',
+        expect.any(Error),
+      );
+
+      loggerSpy.mockRestore();
+    });
+
+    it('deve enviar email de boas-vindas com sucesso', async () => {
+      // Arrange
+      mockedBcrypt.hash.mockResolvedValue('hashedpassword' as never);
+      createUserUseCase.execute.mockResolvedValue(mockUser);
+      mockSendWelcomeEmailUseCase.execute.mockResolvedValue(undefined);
+
+      // Act
+      const result = await useCase.execute(validCommand);
+
+      // Assert
+      expect(result).toEqual(mockUser);
+      expect(mockSendWelcomeEmailUseCase.execute).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        userName: 'Test User',
+      });
+    });
   });
 });
