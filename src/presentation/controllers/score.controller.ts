@@ -1,6 +1,7 @@
 import { CreateScoreUseCase } from '@application/use-cases/streamer/create-score.use-case';
 import { GetDailyPointsUseCase } from '@application/use-cases/streamer/get-daily-points.use-case';
 import { GetDailyScoresWeekUseCase } from '@application/use-cases/streamer/get-daily-scores-week.use-case';
+import { GetReportByNicknameUseCase } from '@application/use-cases/streamer/get-report-by-nickname.use-case';
 import { GetScoreReportUseCase } from '@application/use-cases/streamer/get-score-report.use-case';
 import { GetScoresByHourUseCase } from '@application/use-cases/streamer/get-scores-by-hour.use-case';
 import { GetWeeklyAverageUseCase } from '@application/use-cases/streamer/get-weekly-average.use-case';
@@ -38,6 +39,7 @@ export class ScoreController {
     private readonly getWeeklyRankingUseCase: GetWeeklyRankingUseCase,
     private readonly getWeeklyAverageUseCase: GetWeeklyAverageUseCase,
     private readonly getDailyScoresWeekUseCase: GetDailyScoresWeekUseCase,
+    private readonly getReportByNicknameUseCase: GetReportByNicknameUseCase,
   ) {}
 
   /**
@@ -531,6 +533,68 @@ export class ScoreController {
       startDate,
       endDate,
     });
+
+    return ScoreReportResponseDto.fromDomain(result);
+  }
+
+  @Get('public/report-by-nickname/:nickname')
+  @Public() // 🔓 Endpoint público
+  @ApiOperation({
+    summary: '🌐 PÚBLICO - Relatório detalhado por nickname/canal',
+    description:
+      'Endpoint público que busca um streamer pelo nickname/canal e retorna relatório detalhado de pontos em um período específico com data e horário inicial/final.',
+  })
+  @ApiQuery({
+    name: 'startDateTime',
+    required: true,
+    description: 'Data e hora de início (formato: YYYY-MM-DDTHH:mm:ss)',
+    example: '2025-01-06T20:00:00',
+  })
+  @ApiQuery({
+    name: 'endDateTime',
+    required: true,
+    description: 'Data e hora de fim (formato: YYYY-MM-DDTHH:mm:ss)',
+    example: '2025-01-11T23:59:59',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Relatório por nickname gerado com sucesso.',
+    type: ScoreReportResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datas inválidas ou período inválido.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Streamer com o nickname informado não encontrado.',
+  })
+  async getPublicReportByNickname(
+    @Param('nickname') nickname: string,
+    @Query('startDateTime') startDateTimeString: string,
+    @Query('endDateTime') endDateTimeString: string,
+  ): Promise<ScoreReportResponseDto> {
+    // Validar e converter data/hora completa
+    const startDateTime = new Date(startDateTimeString);
+    const endDateTime = new Date(endDateTimeString);
+
+    if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+      throw new Error(
+        'Data/hora inválidas. Use o formato YYYY-MM-DDTHH:mm:ss.',
+      );
+    }
+
+    const result = await this.getReportByNicknameUseCase.execute({
+      nickname,
+      startDate: startDateTime,
+      endDate: endDateTime,
+    });
+
+    if (!result) {
+      throw new Error(
+        `Nenhum dado encontrado para o streamer '${nickname}' no período informado.`,
+      );
+    }
 
     return ScoreReportResponseDto.fromDomain(result);
   }
