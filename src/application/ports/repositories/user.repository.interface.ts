@@ -16,6 +16,13 @@ export interface UpdateTokensData {
   windowsToken?: string;
 }
 
+export interface UpdateProfileData {
+  fullName?: string;
+  nickname?: string;
+  email?: string;
+  phone?: string;
+}
+
 export interface IUserRepository {
   create(userData: CreateUserData): Promise<User>;
   findById(id: number): Promise<User | null>;
@@ -25,6 +32,7 @@ export interface IUserRepository {
   updateTokens(id: number, tokens: UpdateTokensData): Promise<User>;
   updateLastLogin(id: number): Promise<User>;
   updatePassword(id: number, hashedPassword: string): Promise<User>;
+  updateProfile(id: number, profileData: UpdateProfileData): Promise<User>;
   existsByNickname(nickname: string): Promise<boolean>;
   existsByEmail(email: string): Promise<boolean>;
   findUsersWithLogin(limit: number, offset: number): Promise<User[]>;
