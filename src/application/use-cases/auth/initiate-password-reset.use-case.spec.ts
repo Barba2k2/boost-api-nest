@@ -162,5 +162,96 @@ describe('InitiatePasswordResetUseCase', () => {
       expect(redisService.setex).not.toHaveBeenCalled();
       expect(emailService.sendEmail).not.toHaveBeenCalled();
     });
+
+    it('deve gerar PIN de 6 dígitos numéricos', async () => {
+      // Arrange
+      userRepository.findByEmailOrNickname.mockResolvedValue(mockUser);
+      redisService.setex.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue(true);
+
+      // Act
+      await useCase.execute(validCommand);
+
+      // Assert
+      const redisCall = redisService.setex.mock.calls[0];
+      const pin = redisCall[2];
+      expect(pin).toMatch(/^\d{6}$/); // 6 dígitos numéricos
+    });
+
+    it('deve configurar expiração correta no Redis (15 minutos)', async () => {
+      // Arrange
+      userRepository.findByEmailOrNickname.mockResolvedValue(mockUser);
+      redisService.setex.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue(true);
+
+      // Act
+      await useCase.execute(validCommand);
+
+      // Assert
+      expect(redisService.setex).toHaveBeenCalledWith(
+        'password_reset_pin:1',
+        900, // 15 minutos em segundos
+        expect.any(String),
+      );
+    });
+
+    it('deve usar chave Redis correta com ID do usuário', async () => {
+      // Arrange
+      const userWithDifferentId = new User(
+        99,
+        'testuser',
+        'hashedpassword',
+        UserRole.USER,
+        'test@example.com',
+        'Test User',
+      );
+      userRepository.findByEmailOrNickname.mockResolvedValue(
+        userWithDifferentId,
+      );
+      redisService.setex.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue(true);
+
+      // Act
+      await useCase.execute(validCommand);
+
+      // Assert
+      expect(redisService.setex).toHaveBeenCalledWith(
+        'password_reset_pin:99',
+        900,
+        expect.any(String),
+      );
+    });
+
+    it('deve incluir informações corretas no email HTML', async () => {
+      // Arrange
+      userRepository.findByEmailOrNickname.mockResolvedValue(mockUser);
+      redisService.setex.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue(true);
+
+      // Act
+      await useCase.execute(validCommand);
+
+      // Assert
+      const emailCall = emailService.sendEmail.mock.calls[0][0];
+      expect(emailCall.html).toContain('Test User');
+      expect(emailCall.html).toContain('15 minutos');
+      expect(emailCall.html).toMatch(/\d{6}/); // Contém o PIN
+    });
+
+    it('deve incluir informações corretas no email texto simples', async () => {
+      // Arrange
+      userRepository.findByEmailOrNickname.mockResolvedValue(mockUser);
+      redisService.setex.mockResolvedValue(undefined);
+      emailService.sendEmail.mockResolvedValue(true);
+
+      // Act
+      await useCase.execute(validCommand);
+
+      // Assert
+      const emailCall = emailService.sendEmail.mock.calls[0][0];
+      expect(emailCall.text).toContain('Test User');
+      expect(emailCall.text).toContain('15 minutos');
+      expect(emailCall.text).toMatch(/\d{6}/); // Contém o PIN
+    });
   });
 });
