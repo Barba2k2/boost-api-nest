@@ -1,5 +1,7 @@
+import { ChangePasswordUseCase } from '@application/use-cases/user/change-password.use-case';
 import { CreateUserUseCase } from '@application/use-cases/user/create-user.use-case';
 import { GetUserByIdUseCase } from '@application/use-cases/user/get-user-by-id.use-case';
+import { UpdateProfileUseCase } from '@application/use-cases/user/update-profile.use-case';
 import { UpdateUserTokensUseCase } from '@application/use-cases/user/update-user-tokens.use-case';
 import { User, UserRole } from '@domain/entities/user.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -16,6 +18,8 @@ describe('UserController', () => {
   let createUserUseCase: jest.Mocked<CreateUserUseCase>;
   let getUserByIdUseCase: jest.Mocked<GetUserByIdUseCase>;
   let updateUserTokensUseCase: jest.Mocked<UpdateUserTokensUseCase>;
+  let updateProfileUseCase: jest.Mocked<UpdateProfileUseCase>;
+  let changePasswordUseCase: jest.Mocked<ChangePasswordUseCase>;
 
   const mockCreateUserUseCase = {
     execute: jest.fn(),
@@ -26,6 +30,14 @@ describe('UserController', () => {
   };
 
   const mockUpdateUserTokensUseCase = {
+    execute: jest.fn(),
+  };
+
+  const mockUpdateProfileUseCase = {
+    execute: jest.fn(),
+  };
+
+  const mockChangePasswordUseCase = {
     execute: jest.fn(),
   };
 
@@ -60,6 +72,14 @@ describe('UserController', () => {
           useValue: mockUpdateUserTokensUseCase,
         },
         {
+          provide: UpdateProfileUseCase,
+          useValue: mockUpdateProfileUseCase,
+        },
+        {
+          provide: ChangePasswordUseCase,
+          useValue: mockChangePasswordUseCase,
+        },
+        {
           provide: RateLimitService,
           useValue: mockRateLimitService,
         },
@@ -75,6 +95,8 @@ describe('UserController', () => {
     createUserUseCase = module.get(CreateUserUseCase);
     getUserByIdUseCase = module.get(GetUserByIdUseCase);
     updateUserTokensUseCase = module.get(UpdateUserTokensUseCase);
+    updateProfileUseCase = module.get(UpdateProfileUseCase);
+    changePasswordUseCase = module.get(ChangePasswordUseCase);
   });
 
   afterEach(() => {
