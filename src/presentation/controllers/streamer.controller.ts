@@ -1,5 +1,6 @@
 import { GetAllStreamersUseCase } from '@application/use-cases/streamer/get-all-streamers.use-case';
 import { GetOnlineStreamersUseCase } from '@application/use-cases/streamer/get-online-streamers.use-case';
+import { UpdateMyStreamerUseCase } from '@application/use-cases/streamer/update-my-streamer.use-case';
 import { UpdateStreamerOnlineStatusUseCase } from '@application/use-cases/streamer/update-streamer-online-status.use-case';
 import { UpdateStreamerUseCase } from '@application/use-cases/streamer/update-streamer.use-case';
 import {
@@ -10,16 +11,29 @@ import {
   ParseIntPipe,
   Patch,
   Put,
+  Req,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { StreamerResponseDto } from '@presentation/dto/streamer/streamer-response.dto';
+import { UpdateMyStreamerDto } from '@presentation/dto/streamer/update-my-streamer.dto';
 import { UpdateOnlineStatusDto } from '@presentation/dto/streamer/update-online-status.dto';
 import { UpdateStreamerDto } from '@presentation/dto/streamer/update-streamer.dto';
 import {
   CacheInterceptor,
   CacheResult,
 } from '../../infrastructure/cache/interceptors/cache.interceptor';
+import {
+  RateLimit,
+  RateLimitInterceptor,
+} from '../../infrastructure/cache/interceptors/rate-limit.interceptor';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('streamers')
 @Controller('streamers')
@@ -29,6 +43,7 @@ export class StreamerController {
     private readonly getOnlineStreamersUseCase: GetOnlineStreamersUseCase,
     private readonly updateStreamerUseCase: UpdateStreamerUseCase,
     private readonly updateStreamerOnlineStatusUseCase: UpdateStreamerOnlineStatusUseCase,
+    private readonly updateMyStreamerUseCase: UpdateMyStreamerUseCase,
   ) {}
 
   @Get()
@@ -61,6 +76,38 @@ export class StreamerController {
     return streamers.map((streamer) =>
       StreamerResponseDto.fromDomain(streamer),
     );
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(RateLimitInterceptor)
+  @RateLimit({ type: 'api' })
+  @ApiOperation({ summary: '🎮 Editar meus dados de streamer' })
+  @ApiResponse({
+    status: 200,
+    description: 'Dados de streamer atualizados com sucesso.',
+    type: StreamerResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Usuário não autenticado.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Perfil de streamer não encontrado.',
+  })
+  async updateMyStreamer(
+    @Req() req: any,
+    @Body() updateMyStreamerDto: UpdateMyStreamerDto,
+  ): Promise<StreamerResponseDto> {
+    const userId = req.user.sub;
+    const streamer = await this.updateMyStreamerUseCase.execute({
+      userId,
+      platforms: updateMyStreamerDto.platforms,
+      streamDays: updateMyStreamerDto.streamDays,
+      startTime: updateMyStreamerDto.startTime,
+      endTime: updateMyStreamerDto.endTime,
+    });
+
+    return StreamerResponseDto.fromDomain(streamer);
   }
 
   @Patch(':id')
