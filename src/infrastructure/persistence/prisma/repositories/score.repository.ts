@@ -142,16 +142,52 @@ export class ScoreRepository implements IScoreRepository {
       return null;
     }
 
-    // Buscar todos os scores no período
+    // Buscar todos os scores no período com filtro de data/hora completo
     const scores = await this.prisma.score.findMany({
       where: {
         streamerId,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
+        OR: [
+          {
+            date: {
+              gt: startDate,
+              lt: endDate,
+            },
+          },
+          {
+            AND: [
+              { date: { equals: startDate } },
+              {
+                OR: [
+                  { hour: { gt: startDate.getHours() } },
+                  {
+                    AND: [
+                      { hour: { equals: startDate.getHours() } },
+                      { minute: { gte: startDate.getMinutes() } },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            AND: [
+              { date: { equals: endDate } },
+              {
+                OR: [
+                  { hour: { lt: endDate.getHours() } },
+                  {
+                    AND: [
+                      { hour: { equals: endDate.getHours() } },
+                      { minute: { lte: endDate.getMinutes() } },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
-      orderBy: { date: 'asc' },
+      orderBy: [{ date: 'asc' }, { hour: 'asc' }, { minute: 'asc' }],
     });
 
     // Calcular total de pontos

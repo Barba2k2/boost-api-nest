@@ -41,6 +41,19 @@ export class StreamerRepository implements IStreamerRepository {
     return streamer ? this.toDomain(streamer) : null;
   }
 
+  async findByNickname(nickname: string): Promise<Streamer | null> {
+    const streamer = await this.prisma.streamer.findFirst({
+      where: {
+        user: {
+          nickname: nickname,
+        },
+      },
+      include: { user: true },
+    });
+
+    return streamer ? this.toDomain(streamer) : null;
+  }
+
   async findAll(): Promise<Streamer[]> {
     const streamers = await this.prisma.streamer.findMany({
       include: { user: true },
