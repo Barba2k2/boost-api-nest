@@ -13,6 +13,7 @@ import { GetWeeklyAverageUseCase } from './use-cases/streamer/get-weekly-average
 import { GetWeeklyRankingUseCase } from './use-cases/streamer/get-weekly-ranking.use-case';
 import { UpdateStreamerOnlineStatusUseCase } from './use-cases/streamer/update-streamer-online-status.use-case';
 import { UpdateStreamerUseCase } from './use-cases/streamer/update-streamer.use-case';
+import { GetReportByNicknameUseCase } from '@application/use-cases/streamer/get-report-by-nickname.use-case';
 
 // Repository Tokens
 import { SCORE_REPOSITORY_TOKEN } from './ports/repositories/score.repository.interface';
@@ -45,6 +46,7 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
     GetWeeklyRankingUseCase,
     GetWeeklyAverageUseCase,
     GetDailyScoresWeekUseCase,
+    GetReportByNicknameUseCase,
 
     // Repository Implementations
     {
@@ -68,6 +70,7 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
     GetWeeklyRankingUseCase,
     GetWeeklyAverageUseCase,
     GetDailyScoresWeekUseCase,
+    GetReportByNicknameUseCase,
     STREAMER_REPOSITORY_TOKEN,
     SCORE_REPOSITORY_TOKEN,
   ],
