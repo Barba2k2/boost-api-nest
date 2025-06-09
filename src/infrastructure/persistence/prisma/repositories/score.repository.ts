@@ -14,6 +14,7 @@ import { PrismaService } from '../../../../prisma/prisma.service';
 @Injectable()
 export class ScoreRepository implements IScoreRepository {
   private readonly DAILY_POINTS_LIMIT = 240;
+  private readonly HOURLY_POINTS_LIMIT = 10;
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -29,6 +30,14 @@ export class ScoreRepository implements IScoreRepository {
 
     // 2. Só validar limite para pontos positivos
     if (scoreData.points > 0) {
+      // Verificar limite por hora
+      await this.validateHourlyPointsLimit(
+        scoreData.streamerId,
+        scoreDate,
+        scoreData.hour,
+        scoreData.points,
+      );
+
       // Verificar se adicionar estes pontos ultrapassará o limite diário
       const currentDailyPoints = await this.getDailyPointsByStreamerAndDate(
         scoreData.streamerId,
@@ -501,6 +510,46 @@ export class ScoreRepository implements IScoreRepository {
         (a, b) => b.points - a.points,
       ),
     }));
+  }
+
+  private async validateHourlyPointsLimit(
+    streamerId: number,
+    date: Date,
+    hour: number,
+    newPoints: number,
+  ): Promise<void> {
+    // Buscar todos os pontos positivos desta hora específica
+    const startOfHour = new Date(date);
+    startOfHour.setHours(hour, 0, 0, 0);
+
+    const endOfHour = new Date(date);
+    endOfHour.setHours(hour, 59, 59, 999);
+
+    const result = await this.prisma.score.aggregate({
+      where: {
+        streamerId,
+        date: {
+          gte: startOfHour,
+          lte: endOfHour,
+        },
+        points: {
+          gt: 0, // Só somar pontos positivos
+        },
+      },
+      _sum: { points: true },
+    });
+
+    const currentHourlyPoints = result._sum.points || 0;
+    const newTotal = currentHourlyPoints + newPoints;
+
+    if (newTotal > this.HOURLY_POINTS_LIMIT) {
+      const remainingPoints = this.HOURLY_POINTS_LIMIT - currentHourlyPoints;
+      throw new BadRequestException(
+        `Limite de ${this.HOURLY_POINTS_LIMIT} pontos por hora excedido. ` +
+          `Pontos atuais da hora ${hour}h: ${currentHourlyPoints}. ` +
+          `Pontos restantes: ${Math.max(0, remainingPoints)}.`,
+      );
+    }
   }
 
   private async validateNoDuplicateInLastSixMinutes(
