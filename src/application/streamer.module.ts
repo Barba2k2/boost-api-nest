@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 
 // Use Cases
+import { GetReportByNicknameUseCase } from '@application/use-cases/streamer/get-report-by-nickname.use-case';
 import { CreateScoreUseCase } from './use-cases/streamer/create-score.use-case';
 import { GetAllStreamersUseCase } from './use-cases/streamer/get-all-streamers.use-case';
 import { GetDailyPointsUseCase } from './use-cases/streamer/get-daily-points.use-case';
@@ -13,7 +14,6 @@ import { GetWeeklyAverageUseCase } from './use-cases/streamer/get-weekly-average
 import { GetWeeklyRankingUseCase } from './use-cases/streamer/get-weekly-ranking.use-case';
 import { UpdateStreamerOnlineStatusUseCase } from './use-cases/streamer/update-streamer-online-status.use-case';
 import { UpdateStreamerUseCase } from './use-cases/streamer/update-streamer.use-case';
-import { GetReportByNicknameUseCase } from '@application/use-cases/streamer/get-report-by-nickname.use-case';
 
 // Repository Tokens
 import { SCORE_REPOSITORY_TOKEN } from './ports/repositories/score.repository.interface';
@@ -29,6 +29,7 @@ import { StreamerController } from '@presentation/controllers/streamer.controlle
 
 // External Dependencies
 import { CacheRedisModule } from '../infrastructure/cache/cache.module';
+import { UpdateMyStreamerUseCase } from '@application/use-cases/streamer/update-my-streamer.use-case';
 
 @Module({
   imports: [PrismaModule, CacheRedisModule],
@@ -38,6 +39,7 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
     GetAllStreamersUseCase,
     GetOnlineStreamersUseCase,
     UpdateStreamerUseCase,
+    UpdateMyStreamerUseCase,
     UpdateStreamerOnlineStatusUseCase,
     CreateScoreUseCase,
     GetScoreReportUseCase,
@@ -62,6 +64,7 @@ import { CacheRedisModule } from '../infrastructure/cache/cache.module';
     GetAllStreamersUseCase,
     GetOnlineStreamersUseCase,
     UpdateStreamerUseCase,
+    UpdateMyStreamerUseCase,
     UpdateStreamerOnlineStatusUseCase,
     CreateScoreUseCase,
     GetScoreReportUseCase,

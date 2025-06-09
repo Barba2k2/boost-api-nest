@@ -21,6 +21,8 @@ import { UserController } from '@presentation/controllers/user.controller';
 // External Dependencies
 import { CacheRedisModule } from '../infrastructure/cache/cache.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ChangePasswordUseCase } from '@application/use-cases/user/change-password.use-case';
+import { UpdateProfileUseCase } from '@application/use-cases/user/update-profile.use-case';
 
 @Module({
   imports: [PrismaModule, CacheRedisModule],
@@ -31,6 +33,8 @@ import { PrismaModule } from '../prisma/prisma.module';
     GetUserByIdUseCase,
     UpdateLastLoginUseCase,
     UpdateUserTokensUseCase,
+    UpdateProfileUseCase,
+    ChangePasswordUseCase,
     AuthenticateUserUseCase,
 
     // Repository Implementations
@@ -48,6 +52,8 @@ import { PrismaModule } from '../prisma/prisma.module';
     GetUserByIdUseCase,
     UpdateLastLoginUseCase,
     UpdateUserTokensUseCase,
+    UpdateProfileUseCase,
+    ChangePasswordUseCase,
     AuthenticateUserUseCase,
     USER_REPOSITORY_TOKEN,
     STREAMER_REPOSITORY_TOKEN,
