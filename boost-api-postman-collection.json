@@ -448,6 +448,63 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "👤 Ver Meu Perfil",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Editar Meu Perfil",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"João Silva Santos\",\n  \"nickname\": \"joaosilva2025\",\n  \"email\": \"joao.novo@example.com\",\n  \"phone\": \"+55 11 99999-9999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🔐 Alterar Minha Senha",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"MinhaSenh@123\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"NovaSenh@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/password",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "password"]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -520,6 +577,28 @@
               "raw": "{{base_url}}/streamers/:id}/status",
               "host": ["{{base_url}}"],
               "path": ["streamers", ":id}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🎮 Editar Meus Dados de Streamer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platforms\": [\"twitch\", \"youtube\"],\n  \"streamDays\": [\"monday\", \"wednesday\", \"friday\", \"saturday\"],\n  \"startTime\": \"19:00\",\n  \"endTime\": \"23:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/streamers/me",
+              "host": ["{{base_url}}"],
+              "path": ["streamers", "me"]
             }
           },
           "response": []
