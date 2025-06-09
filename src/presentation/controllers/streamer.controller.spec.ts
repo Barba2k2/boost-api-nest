@@ -1,5 +1,6 @@
 import { GetAllStreamersUseCase } from '@application/use-cases/streamer/get-all-streamers.use-case';
 import { GetOnlineStreamersUseCase } from '@application/use-cases/streamer/get-online-streamers.use-case';
+import { UpdateMyStreamerUseCase } from '@application/use-cases/streamer/update-my-streamer.use-case';
 import { UpdateStreamerOnlineStatusUseCase } from '@application/use-cases/streamer/update-streamer-online-status.use-case';
 import { UpdateStreamerUseCase } from '@application/use-cases/streamer/update-streamer.use-case';
 import { Streamer } from '@domain/entities/streamer.entity';
@@ -10,6 +11,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StreamerResponseDto } from '@presentation/dto/streamer/streamer-response.dto';
 import { UpdateOnlineStatusDto } from '@presentation/dto/streamer/update-online-status.dto';
 import { UpdateStreamerDto } from '@presentation/dto/streamer/update-streamer.dto';
+import { RateLimitService } from '../../infrastructure/cache/rate-limit.service';
 import { StreamerController } from './streamer.controller';
 
 describe('StreamerController', () => {
@@ -18,6 +20,7 @@ describe('StreamerController', () => {
   let mockGetOnlineStreamersUseCase: any;
   let mockUpdateStreamerUseCase: any;
   let mockUpdateStreamerOnlineStatusUseCase: any;
+  let mockUpdateMyStreamerUseCase: any;
 
   const mockStreamer = new Streamer(
     1,
@@ -67,6 +70,10 @@ describe('StreamerController', () => {
       execute: jest.fn(),
     };
 
+    mockUpdateMyStreamerUseCase = {
+      execute: jest.fn(),
+    };
+
     const mockCacheManager = {
       get: jest.fn(),
       set: jest.fn(),
@@ -94,8 +101,21 @@ describe('StreamerController', () => {
           useValue: mockUpdateStreamerOnlineStatusUseCase,
         },
         {
+          provide: UpdateMyStreamerUseCase,
+          useValue: mockUpdateMyStreamerUseCase,
+        },
+        {
           provide: CACHE_MANAGER,
           useValue: mockCacheManager,
+        },
+        {
+          provide: RateLimitService,
+          useValue: {
+            checkLoginRateLimit: jest.fn(),
+            isTemporarilyBlocked: jest.fn(),
+            incrementFailedAttempts: jest.fn(),
+            clearFailedAttempts: jest.fn(),
+          },
         },
         Reflector,
       ],
