@@ -325,6 +325,74 @@ describe('StreamerRepository', () => {
     });
   });
 
+  describe('updateOnlineStatus', () => {
+    it('deve atualizar status online para true', async () => {
+      // Arrange
+      const onlineStreamer = { ...mockPrismaStreamer, isOnline: true };
+      mockPrismaService.streamer.update.mockResolvedValue(onlineStreamer);
+
+      // Act
+      const result = await repository.updateOnlineStatus(1, true);
+
+      // Assert
+      expect(mockPrismaService.streamer.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { isOnline: true },
+      });
+      expect(result.isOnline).toBe(true);
+    });
+
+    it('deve atualizar status online para false', async () => {
+      // Arrange
+      const offlineStreamer = { ...mockPrismaStreamer, isOnline: false };
+      mockPrismaService.streamer.update.mockResolvedValue(offlineStreamer);
+
+      // Act
+      const result = await repository.updateOnlineStatus(1, false);
+
+      // Assert
+      expect(mockPrismaService.streamer.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { isOnline: false },
+      });
+      expect(result.isOnline).toBe(false);
+    });
+  });
+
+  describe('findOnlineStreamers', () => {
+    it('deve retornar apenas streamers online', async () => {
+      // Arrange
+      const onlineStreamers = [
+        { ...mockPrismaStreamer, isOnline: true },
+        { ...mockPrismaStreamer, id: 2, userId: 2, isOnline: true },
+      ];
+      mockPrismaService.streamer.findMany.mockResolvedValue(onlineStreamers);
+
+      // Act
+      const result = await repository.findOnlineStreamers();
+
+      // Assert
+      expect(mockPrismaService.streamer.findMany).toHaveBeenCalledWith({
+        where: { isOnline: true },
+        include: { user: true },
+      });
+      expect(result).toHaveLength(2);
+      expect(result[0].isOnline).toBe(true);
+      expect(result[1].isOnline).toBe(true);
+    });
+
+    it('deve retornar array vazio quando não há streamers online', async () => {
+      // Arrange
+      mockPrismaService.streamer.findMany.mockResolvedValue([]);
+
+      // Act
+      const result = await repository.findOnlineStreamers();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('toDomain', () => {
     it('deve converter dados do Prisma para entidade de domínio corretamente', async () => {
       // Arrange
@@ -347,6 +415,45 @@ describe('StreamerRepository', () => {
       expect(result.streamDays).toEqual(['monday', 'wednesday']);
       expect(result.createdAt).toEqual(new Date('2024-01-01'));
       expect(result.updatedAt).toEqual(new Date('2024-01-01'));
+    });
+
+    it('deve converter corretamente streamer online', async () => {
+      // Arrange
+      const onlineStreamerData = { ...mockPrismaStreamer, isOnline: true };
+      mockPrismaService.streamer.create.mockResolvedValue(onlineStreamerData);
+
+      // Act
+      const result = await repository.create({
+        userId: 1,
+        points: 100,
+        platforms: ['twitch'],
+        streamDays: ['monday'],
+      });
+
+      // Assert
+      expect(result.isOnline).toBe(true);
+    });
+
+    it('deve converter corretamente streamer com horários', async () => {
+      // Arrange
+      const streamerWithSchedule = {
+        ...mockPrismaStreamer,
+        usualStartTime: '20:00',
+        usualEndTime: '23:00',
+      };
+      mockPrismaService.streamer.create.mockResolvedValue(streamerWithSchedule);
+
+      // Act
+      const result = await repository.create({
+        userId: 1,
+        points: 100,
+        platforms: ['twitch'],
+        streamDays: ['monday'],
+      });
+
+      // Assert
+      expect(result.startTime).toBe('20:00');
+      expect(result.endTime).toBe('23:00');
     });
   });
 });
