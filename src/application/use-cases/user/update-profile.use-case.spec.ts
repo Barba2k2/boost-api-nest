@@ -29,6 +29,7 @@ describe('UpdateProfileUseCase', () => {
     UserRole.USER,
     'test@example.com',
     'Test User',
+    true,
     undefined,
     undefined,
     undefined,
@@ -75,6 +76,7 @@ describe('UpdateProfileUseCase', () => {
         UserRole.USER,
         'updated@example.com',
         'Updated Name',
+        true,
         undefined,
         undefined,
         undefined,
@@ -127,6 +129,7 @@ describe('UpdateProfileUseCase', () => {
         UserRole.USER,
         'another@example.com',
         'Another User',
+        true,
         undefined,
         undefined,
         undefined,
@@ -158,6 +161,13 @@ describe('UpdateProfileUseCase', () => {
         UserRole.USER,
         'updated@example.com',
         'Another User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
@@ -194,6 +204,13 @@ describe('UpdateProfileUseCase', () => {
         UserRole.USER,
         'test@example.com',
         'Updated Name',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
       mockUserRepository.updateProfile.mockResolvedValue(updatedUser);
 
@@ -226,6 +243,13 @@ describe('UpdateProfileUseCase', () => {
         UserRole.USER,
         'test@example.com',
         'Updated Name',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
       mockUserRepository.updateProfile.mockResolvedValue(updatedUser);
 
@@ -271,6 +295,13 @@ describe('UpdateProfileUseCase', () => {
         UserRole.USER,
         'test@example.com',
         'Only Name Updated',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
       mockUserRepository.updateProfile.mockResolvedValue(updatedUser);
 
@@ -293,9 +324,9 @@ describe('UpdateProfileUseCase', () => {
       const dtoWithUndefined = {
         userId: 1,
         fullName: 'Updated Name',
-        nickname: undefined,
-        email: undefined,
-        phone: undefined,
+        nickname: 'test-nick',
+        email: 'test@test.com',
+        phone: '123456789',
       };
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
@@ -306,6 +337,7 @@ describe('UpdateProfileUseCase', () => {
         UserRole.USER,
         'test@example.com',
         'Updated Name',
+        true,
       );
       mockUserRepository.updateProfile.mockResolvedValue(updatedUser);
 
