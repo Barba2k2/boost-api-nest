@@ -58,14 +58,7 @@ describe('RegisterUserUseCase', () => {
       role: UserRole.USER,
     };
 
-    const mockUser = new User(
-      1,
-      'testuser',
-      'hashedpassword',
-      UserRole.USER,
-      'test@example.com',
-      'Test User',
-    );
+    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER, 'test@example.com', 'Test User', true);
 
     it('deve registrar um usuário com senha hasheada', async () => {
       // Arrange
@@ -90,14 +83,7 @@ describe('RegisterUserUseCase', () => {
     it('deve registrar usuário ADMIN', async () => {
       // Arrange
       const adminCommand = { ...validCommand, role: UserRole.ADMIN };
-      const adminUser = new User(
-        1,
-        'testuser',
-        'hashedpassword',
-        UserRole.ADMIN,
-        'test@example.com',
-        'Test User',
-      );
+      const adminUser = new User(1, 'testuser', 'hashedpassword', UserRole.ADMIN, 'test@example.com', 'Test User', true);
 
       mockedBcrypt.hash.mockResolvedValue('hashedpassword' as never);
       createUserUseCase.execute.mockResolvedValue(adminUser);
@@ -120,14 +106,7 @@ describe('RegisterUserUseCase', () => {
     it('deve registrar usuário ASSISTANT', async () => {
       // Arrange
       const assistantCommand = { ...validCommand, role: UserRole.ASSISTANT };
-      const assistantUser = new User(
-        1,
-        'testuser',
-        'hashedpassword',
-        UserRole.ASSISTANT,
-        'test@example.com',
-        'Test User',
-      );
+      const assistantUser = new User(1, 'testuser', 'hashedpassword', UserRole.ASSISTANT, 'test@example.com', 'Test User', true);
 
       mockedBcrypt.hash.mockResolvedValue('hashedpassword' as never);
       createUserUseCase.execute.mockResolvedValue(assistantUser);
