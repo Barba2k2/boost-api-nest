@@ -39,7 +39,7 @@ describe('GetUserByIdUseCase', () => {
   });
 
   describe('execute', () => {
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER, 'testuser@test.com', 'testuser User', true);
 
     it('deve retornar usuário quando encontrado', async () => {
       // Arrange
@@ -67,7 +67,7 @@ describe('GetUserByIdUseCase', () => {
 
     it('deve retornar usuário ADMIN quando encontrado', async () => {
       // Arrange
-      const adminUser = new User(2, 'admin', 'adminpass', UserRole.ADMIN);
+      const adminUser = new User(2, 'admin', 'adminpass', UserRole.ADMIN, 'admin@test.com', 'admin User', true);
       userRepository.findById.mockResolvedValue(adminUser);
 
       // Act
@@ -81,12 +81,7 @@ describe('GetUserByIdUseCase', () => {
 
     it('deve retornar usuário ASSISTANT quando encontrado', async () => {
       // Arrange
-      const assistantUser = new User(
-        3,
-        'assistant',
-        'assistantpass',
-        UserRole.ASSISTANT,
-      );
+      const assistantUser = new User(3, 'assistant', 'assistantpass', UserRole.ASSISTANT, 'assistant@test.com', 'assistant User', true);
       userRepository.findById.mockResolvedValue(assistantUser);
 
       // Act
