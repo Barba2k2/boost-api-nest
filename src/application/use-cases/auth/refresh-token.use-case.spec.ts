@@ -73,7 +73,7 @@ describe('RefreshTokenUseCase', () => {
       refreshToken: 'valid-refresh-token',
     };
 
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER, 'testuser@test.com', 'testuser User', true);
     const mockTokenPayload = {
       sub: 1,
       role: UserRole.USER,
