@@ -20,6 +20,7 @@ export class UserRepository implements IUserRepository {
         role: userData.role,
         email: userData.email,
         fullName: userData.fullName,
+        status: true, // Usuários criados são ativos por padrão
       },
     });
 
@@ -157,6 +158,23 @@ export class UserRepository implements IUserRepository {
     return !!user;
   }
 
+  async findAll(): Promise<User[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map((user) => this.toDomain(user));
+  }
+
+  async findByFullName(fullName: string): Promise<User[]> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        fullName: {
+          contains: fullName,
+          mode: 'insensitive',
+        },
+      },
+    });
+    return users.map((user) => this.toDomain(user));
+  }
+
   private toDomain(prismaUser: any): User {
     return new User(
       prismaUser.id,
@@ -165,6 +183,7 @@ export class UserRepository implements IUserRepository {
       prismaUser.role as UserRole,
       prismaUser.email,
       prismaUser.fullName,
+      prismaUser.status,
       prismaUser.refreshToken,
       prismaUser.webToken,
       prismaUser.windowsToken,
