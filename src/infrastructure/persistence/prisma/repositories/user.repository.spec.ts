@@ -77,6 +77,7 @@ describe('UserRepository', () => {
           email: 'test@example.com',
           password: 'hashedpassword',
           role: UserRole.USER,
+          status: true,
         },
       });
       expect(result.id).toBe(1);
