@@ -26,6 +26,7 @@ describe('SessionService', () => {
     UserRole.USER,
     'test@example.com',
     'Test User',
+    true,
   );
 
   beforeEach(async () => {
