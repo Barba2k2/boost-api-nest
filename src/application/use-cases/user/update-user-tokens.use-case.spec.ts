@@ -40,13 +40,8 @@ describe('UpdateUserTokensUseCase', () => {
   });
 
   describe('execute', () => {
-    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
-    const updatedUser = new User(
-      1,
-      'testuser',
-      'hashedpassword',
-      UserRole.USER,
-    );
+    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER, 'testuser@test.com', 'testuser User', true);
+    const updatedUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER, 'testuser@test.com', 'testuser User', true);
 
     const validTokens: UpdateTokensData = {
       refreshToken: 'new-refresh-token',
@@ -147,7 +142,7 @@ describe('UpdateUserTokensUseCase', () => {
 
     it('deve atualizar tokens para usuário ADMIN', async () => {
       // Arrange
-      const adminUser = new User(2, 'admin', 'adminpass', UserRole.ADMIN);
+      const adminUser = new User(2, 'admin', 'adminpass', UserRole.ADMIN, 'admin@test.com', 'admin User', true);
       const adminTokens: UpdateTokensData = {
         refreshToken: 'admin-refresh-token',
         webToken: 'admin-web-token',
@@ -172,12 +167,7 @@ describe('UpdateUserTokensUseCase', () => {
 
     it('deve atualizar tokens para usuário ASSISTANT', async () => {
       // Arrange
-      const assistantUser = new User(
-        3,
-        'assistant',
-        'assistantpass',
-        UserRole.ASSISTANT,
-      );
+      const assistantUser = new User(3, 'assistant', 'assistantpass', UserRole.ASSISTANT, 'assistant@test.com', 'assistant User', true);
       const assistantTokens: UpdateTokensData = {
         refreshToken: 'assistant-refresh-token',
         webToken: 'assistant-web-token',
