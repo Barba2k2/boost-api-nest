@@ -73,6 +73,7 @@ describe('InitiatePasswordResetUseCase', () => {
       UserRole.USER,
       'test@example.com',
       'Test User',
+      true,
       undefined,
       undefined,
       undefined,
@@ -149,8 +150,15 @@ describe('InitiatePasswordResetUseCase', () => {
         'testuser',
         'hashedpassword',
         UserRole.USER,
-        undefined, // sem email
+        '', // sem email
         'Test User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
       userRepository.findByEmailOrNickname.mockResolvedValue(userWithoutEmail);
 
@@ -204,6 +212,13 @@ describe('InitiatePasswordResetUseCase', () => {
         UserRole.USER,
         'test@example.com',
         'Test User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
       userRepository.findByEmailOrNickname.mockResolvedValue(
         userWithDifferentId,
