@@ -57,12 +57,13 @@ describe('GetLoginLogsUseCase', () => {
         UserRole.USER,
         'user1@example.com',
         'User One',
-        undefined,
-        undefined,
-        undefined,
-        new Date('2024-01-01T10:00:00Z'),
-        new Date('2024-01-01T09:00:00Z'),
+        true,
+        undefined, // refreshToken
+        undefined, // webToken
+        undefined, // windowsToken
         new Date('2024-01-01T10:00:00Z'), // lastLogin
+        new Date('2024-01-01T09:00:00Z'), // createdAt
+        new Date('2024-01-01T10:00:00Z'), // updatedAt
       ),
       new User(
         2,
@@ -71,12 +72,13 @@ describe('GetLoginLogsUseCase', () => {
         UserRole.ADMIN,
         'admin1@example.com',
         'Admin One',
-        undefined,
-        undefined,
-        undefined,
-        new Date('2024-01-02T11:00:00Z'),
-        new Date('2024-01-02T10:00:00Z'),
+        true,
+        undefined, // refreshToken
+        undefined, // webToken
+        undefined, // windowsToken
         new Date('2024-01-02T11:00:00Z'), // lastLogin
+        new Date('2024-01-02T10:00:00Z'), // createdAt
+        new Date('2024-01-02T11:00:00Z'), // updatedAt
       ),
       new User(
         3,
@@ -85,12 +87,13 @@ describe('GetLoginLogsUseCase', () => {
         UserRole.ASSISTANT,
         'assistant1@example.com',
         'Assistant One',
-        undefined,
-        undefined,
-        undefined,
-        new Date('2024-01-03T12:00:00Z'),
-        new Date('2024-01-03T11:00:00Z'),
+        true,
+        undefined, // refreshToken
+        undefined, // webToken
+        undefined, // windowsToken
         new Date('2024-01-03T12:00:00Z'), // lastLogin
+        new Date('2024-01-03T11:00:00Z'), // createdAt
+        new Date('2024-01-03T12:00:00Z'), // updatedAt
       ),
     ];
 
