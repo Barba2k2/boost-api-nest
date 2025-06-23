@@ -4,20 +4,51 @@ describe('User Entity', () => {
   describe('constructor', () => {
     it('deve criar um usuário com todos os parâmetros', () => {
       // Act
-      const user = new User(1, 'testuser', 'password123', UserRole.USER);
+      const user = new User(
+        1,
+        'testuser',
+        'password123',
+        UserRole.USER,
+        'test@email.com',
+        'Test User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Assert
       expect(user.id).toBe(1);
       expect(user.nickname).toBe('testuser');
       expect(user.password).toBe('password123');
       expect(user.role).toBe(UserRole.USER);
+      expect(user.email).toBe('test@email.com');
+      expect(user.fullName).toBe('Test User');
+      expect(user.status).toBe(true);
     });
   });
 
   describe('isAdmin', () => {
     it('deve retornar true para usuário ADMIN', () => {
       // Arrange
-      const adminUser = new User(1, 'admin', 'password', UserRole.ADMIN);
+      const adminUser = new User(
+        1,
+        'admin',
+        'password',
+        UserRole.ADMIN,
+        'admin@email.com',
+        'Admin User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(adminUser.isAdmin()).toBe(true);
@@ -25,7 +56,21 @@ describe('User Entity', () => {
 
     it('deve retornar false para usuário USER', () => {
       // Arrange
-      const regularUser = new User(1, 'user', 'password', UserRole.USER);
+      const regularUser = new User(
+        1,
+        'user',
+        'password',
+        UserRole.USER,
+        'user@email.com',
+        'Regular User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(regularUser.isAdmin()).toBe(false);
@@ -38,6 +83,15 @@ describe('User Entity', () => {
         'assistant',
         'password',
         UserRole.ASSISTANT,
+        'assistant@email.com',
+        'Assistant User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
 
       // Act & Assert
@@ -48,7 +102,21 @@ describe('User Entity', () => {
   describe('isUser', () => {
     it('deve retornar true para usuário USER', () => {
       // Arrange
-      const regularUser = new User(1, 'user', 'password', UserRole.USER);
+      const regularUser = new User(
+        1,
+        'user',
+        'password',
+        UserRole.USER,
+        'user@email.com',
+        'Regular User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(regularUser.isUser()).toBe(true);
@@ -56,7 +124,21 @@ describe('User Entity', () => {
 
     it('deve retornar false para usuário ADMIN', () => {
       // Arrange
-      const adminUser = new User(1, 'admin', 'password', UserRole.ADMIN);
+      const adminUser = new User(
+        1,
+        'admin',
+        'password',
+        UserRole.ADMIN,
+        'admin@email.com',
+        'Admin User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(adminUser.isUser()).toBe(false);
@@ -69,6 +151,15 @@ describe('User Entity', () => {
         'assistant',
         'password',
         UserRole.ASSISTANT,
+        'assistant@email.com',
+        'Assistant User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
 
       // Act & Assert
@@ -84,6 +175,15 @@ describe('User Entity', () => {
         'assistant',
         'password',
         UserRole.ASSISTANT,
+        'assistant@email.com',
+        'Assistant User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
 
       // Act & Assert
@@ -92,7 +192,21 @@ describe('User Entity', () => {
 
     it('deve retornar false para usuário USER', () => {
       // Arrange
-      const regularUser = new User(1, 'user', 'password', UserRole.USER);
+      const regularUser = new User(
+        1,
+        'user',
+        'password',
+        UserRole.USER,
+        'user@email.com',
+        'Regular User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(regularUser.isAssistant()).toBe(false);
@@ -100,7 +214,21 @@ describe('User Entity', () => {
 
     it('deve retornar false para usuário ADMIN', () => {
       // Arrange
-      const adminUser = new User(1, 'admin', 'password', UserRole.ADMIN);
+      const adminUser = new User(
+        1,
+        'admin',
+        'password',
+        UserRole.ADMIN,
+        'admin@email.com',
+        'Admin User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(adminUser.isAssistant()).toBe(false);
@@ -110,7 +238,21 @@ describe('User Entity', () => {
   describe('canCreateStreamer', () => {
     it('deve retornar true para usuário ADMIN', () => {
       // Arrange
-      const adminUser = new User(1, 'admin', 'password', UserRole.ADMIN);
+      const adminUser = new User(
+        1,
+        'admin',
+        'password',
+        UserRole.ADMIN,
+        'admin@email.com',
+        'Admin User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(adminUser.canCreateStreamer()).toBe(true);
@@ -118,7 +260,21 @@ describe('User Entity', () => {
 
     it('deve retornar true para usuário USER', () => {
       // Arrange
-      const regularUser = new User(1, 'user', 'password', UserRole.USER);
+      const regularUser = new User(
+        1,
+        'user',
+        'password',
+        UserRole.USER,
+        'user@email.com',
+        'Regular User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
 
       // Act & Assert
       expect(regularUser.canCreateStreamer()).toBe(true);
@@ -131,6 +287,15 @@ describe('User Entity', () => {
         'assistant',
         'password',
         UserRole.ASSISTANT,
+        'assistant@email.com',
+        'Assistant User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
 
       // Act & Assert
