@@ -76,9 +76,9 @@ describe('JwtStrategy', () => {
       // Arrange
       const payload = {
         sub: 222,
-        nickname: undefined,
-        role: undefined,
-        streamerId: undefined,
+        nickname: 'test-nick',
+        role: true,
+        streamerId: true,
       };
 
       // Act
@@ -87,9 +87,9 @@ describe('JwtStrategy', () => {
       // Assert
       expect(result).toEqual({
         id: 222,
-        nickname: undefined,
-        role: undefined,
-        streamerId: undefined,
+        nickname: 'test-nick',
+        role: true,
+        streamerId: true,
       });
     });
 
