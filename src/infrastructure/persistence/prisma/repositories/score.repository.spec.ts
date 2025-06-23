@@ -92,7 +92,7 @@ describe('ScoreRepository', () => {
       };
 
       mockScoreValidationRepository.validateScoreCreation.mockResolvedValue(
-        undefined,
+        true,
       );
       mockPrismaService.score.create.mockResolvedValue(mockPrismaScore);
 
@@ -438,7 +438,7 @@ describe('ScoreRepository', () => {
         points: 25,
       };
       mockScoreValidationRepository.validateScoreCreation.mockResolvedValue(
-        undefined,
+        true,
       );
       mockPrismaService.score.create.mockResolvedValue(mockPrismaScore);
 
