@@ -32,6 +32,8 @@ describe('UpdateMyStreamerUseCase', () => {
     'hashedpassword',
     UserRole.USER,
     'test@example.com',
+    'Test User',
+    true,
   );
 
   const mockStreamer = new Streamer(
