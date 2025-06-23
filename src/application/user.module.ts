@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 
 // Use Cases
+import { GetAllUsersUseCase } from '@application/use-cases/user/get-all-users.use-case';
 import { AuthenticateUserUseCase } from './use-cases/auth/authenticate-user.use-case';
 import { CreateUserUseCase } from './use-cases/user/create-user.use-case';
-import { GetUserByIdUseCase } from './use-cases/user/get-user-by-id.use-case';
+import {
+  GetUserByIdUseCase,
+  GetUsersByFullNameUseCase,
+} from './use-cases/user/get-user-by-id.use-case';
 import { UpdateLastLoginUseCase } from './use-cases/user/update-last-login.use-case';
 import { UpdateUserTokensUseCase } from './use-cases/user/update-user-tokens.use-case';
 
@@ -19,10 +23,10 @@ import { UserRepository } from '@infrastructure/persistence/prisma/repositories/
 import { UserController } from '@presentation/controllers/user.controller';
 
 // External Dependencies
-import { CacheRedisModule } from '../infrastructure/cache/cache.module';
-import { PrismaModule } from '../prisma/prisma.module';
 import { ChangePasswordUseCase } from '@application/use-cases/user/change-password.use-case';
 import { UpdateProfileUseCase } from '@application/use-cases/user/update-profile.use-case';
+import { CacheRedisModule } from '../infrastructure/cache/cache.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule, CacheRedisModule],
@@ -31,11 +35,13 @@ import { UpdateProfileUseCase } from '@application/use-cases/user/update-profile
     // Use Cases
     CreateUserUseCase,
     GetUserByIdUseCase,
+    GetUsersByFullNameUseCase,
     UpdateLastLoginUseCase,
     UpdateUserTokensUseCase,
     UpdateProfileUseCase,
     ChangePasswordUseCase,
     AuthenticateUserUseCase,
+    GetAllUsersUseCase,
 
     // Repository Implementations
     {
@@ -50,11 +56,13 @@ import { UpdateProfileUseCase } from '@application/use-cases/user/update-profile
   exports: [
     CreateUserUseCase,
     GetUserByIdUseCase,
+    GetUsersByFullNameUseCase,
     UpdateLastLoginUseCase,
     UpdateUserTokensUseCase,
     UpdateProfileUseCase,
     ChangePasswordUseCase,
     AuthenticateUserUseCase,
+    GetAllUsersUseCase,
     USER_REPOSITORY_TOKEN,
     STREAMER_REPOSITORY_TOKEN,
   ],
