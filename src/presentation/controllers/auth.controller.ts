@@ -13,6 +13,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Param,
   ParseIntPipe,
   Post,
@@ -45,6 +46,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly validateUserUseCase: ValidateUserUseCase,
@@ -69,16 +72,31 @@ export class AuthController {
   })
   @ApiResponse({ status: 409, description: 'Usuário já existe.' })
   async register(@Body() registerDto: RegisterDto): Promise<UserResponseDto> {
-    const user = await this.registerUserUseCase.execute({
-      fullName: registerDto.fullName,
-      nickname: registerDto.nickname,
-      email: registerDto.email,
-      password: registerDto.password,
-      confirmPassword: registerDto.confirmPassword,
-      role: registerDto.role,
-    });
+    this.logger.log(
+      `[REGISTER_ATTEMPT] Tentativa de registro - Email: ${registerDto.email}, Nick: ${registerDto.nickname}, Role: ${registerDto.role}`,
+    );
 
-    return UserResponseDto.fromDomain(user);
+    try {
+      const user = await this.registerUserUseCase.execute({
+        fullName: registerDto.fullName,
+        nickname: registerDto.nickname,
+        email: registerDto.email,
+        password: registerDto.password,
+        confirmPassword: registerDto.confirmPassword,
+        role: registerDto.role,
+      });
+
+      this.logger.log(
+        `[REGISTER_SUCCESS] Usuário registrado com sucesso - ID: ${user.id}, Nick: ${user.nickname}, Email: ${user.email}, Role: ${user.role}`,
+      );
+
+      return UserResponseDto.fromDomain(user);
+    } catch (error) {
+      this.logger.error(
+        `[REGISTER_FAILURE] Falha no registro - Email: ${registerDto.email}, Nick: ${registerDto.nickname}, Erro: ${error.message}`,
+      );
+      throw error;
+    }
   }
 
   @Post('login')
@@ -96,25 +114,66 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Req() req: any,
   ): Promise<TokenResponseDto> {
-    // Validar usuário
-    const user = await this.validateUserUseCase.execute({
-      emailOrNickname: loginDto.emailOrNickname,
-      password: loginDto.password,
-    });
+    const startTime = Date.now();
+    const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
 
-    // Atualizar último login
-    await this.updateLastLoginUseCase.execute(user.id);
+    this.logger.log(
+      `[LOGIN_ATTEMPT] Tentativa de login iniciada - Email/Nick: ${loginDto.emailOrNickname}, IP: ${clientIp}, UserAgent: ${userAgent}`,
+    );
 
-    // Gerar tokens
-    const tokens = await this.generateTokensUseCase.execute({
-      user,
-      includeRefreshToken: true,
-    });
+    try {
+      // Validar usuário
+      this.logger.log(
+        `[LOGIN_VALIDATION] Iniciando validação do usuário: ${loginDto.emailOrNickname}`,
+      );
 
-    return {
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-    };
+      const user = await this.validateUserUseCase.execute({
+        emailOrNickname: loginDto.emailOrNickname,
+        password: loginDto.password,
+      });
+
+      this.logger.log(
+        `[LOGIN_VALIDATION_SUCCESS] Usuário validado com sucesso - ID: ${user.id}, Nick: ${user.nickname}, Role: ${user.role}`,
+      );
+
+      // Atualizar último login
+      this.logger.log(
+        `[LOGIN_UPDATE] Atualizando último login do usuário ID: ${user.id}`,
+      );
+      await this.updateLastLoginUseCase.execute(user.id);
+      this.logger.log(
+        `[LOGIN_UPDATE_SUCCESS] Último login atualizado para usuário ID: ${user.id}`,
+      );
+
+      // Gerar tokens
+      this.logger.log(
+        `[LOGIN_TOKENS] Gerando tokens para usuário ID: ${user.id}`,
+      );
+      const tokens = await this.generateTokensUseCase.execute({
+        user,
+        includeRefreshToken: true,
+      });
+      this.logger.log(
+        `[LOGIN_TOKENS_SUCCESS] Tokens gerados com sucesso para usuário ID: ${user.id}`,
+      );
+
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `[LOGIN_SUCCESS] Login concluído com sucesso - ID: ${user.id}, Nick: ${user.nickname}, Role: ${user.role}, IP: ${clientIp}, Duração: ${duration}ms`,
+      );
+
+      return {
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `[LOGIN_FAILURE] Falha no login - Email/Nick: ${loginDto.emailOrNickname}, IP: ${clientIp}, Erro: ${error.message}, Duração: ${duration}ms`,
+      );
+      throw error;
+    }
   }
 
   @Post('refresh/:id')
