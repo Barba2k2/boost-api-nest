@@ -90,6 +90,7 @@ describe('ResetPasswordUseCase', () => {
       UserRole.USER,
       'test@example.com',
       'Test User',
+      true,
       undefined,
       undefined,
       undefined,
@@ -298,7 +299,15 @@ describe('ResetPasswordUseCase', () => {
       };
 
       userRepository.findByEmailOrNickname.mockResolvedValue(
-        new User(1, 'test', 'old', UserRole.USER, 'test@example.com', 'Test'),
+        new User(
+          1,
+          'test',
+          'old',
+          UserRole.USER,
+          'test@example.com',
+          'Test',
+          true,
+        ),
       );
       redisService.get.mockResolvedValue('valid-token');
       (mockedBcrypt.compare as jest.Mock).mockResolvedValue(false);
@@ -392,6 +401,7 @@ describe('ResetPasswordUseCase', () => {
         UserRole.USER,
         'test@example.com',
         'John Doe',
+        true,
       );
       const validCommand: ResetPasswordCommand = {
         emailOrNickname: 'test@example.com',
