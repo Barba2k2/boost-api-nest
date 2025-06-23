@@ -22,3 +22,15 @@ export class GetUserByIdUseCase {
     return user;
   }
 }
+
+@Injectable()
+export class GetUsersByFullNameUseCase {
+  constructor(
+    @Inject(USER_REPOSITORY_TOKEN)
+    private readonly userRepository: IUserRepository,
+  ) {}
+
+  async execute(fullName: string): Promise<User[]> {
+    return this.userRepository.findByFullName(fullName);
+  }
+}
