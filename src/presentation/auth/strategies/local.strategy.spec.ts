@@ -8,7 +8,21 @@ describe('LocalStrategy', () => {
   let strategy: LocalStrategy;
   let mockValidateUserUseCase: any;
 
-  const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER);
+  const mockUser = new User(
+    1,
+    'testuser',
+    'hashedpassword',
+    UserRole.USER,
+    'testuser@test.com',
+    'testuser User',
+    true,
+    undefined,
+    undefined,
+    undefined,
+    new Date(),
+    new Date(),
+    new Date(),
+  );
 
   beforeEach(async () => {
     mockValidateUserUseCase = {
@@ -105,7 +119,21 @@ describe('LocalStrategy', () => {
 
     it('deve funcionar com diferentes tipos de usuário', async () => {
       // Arrange - Admin
-      const adminUser = new User(2, 'admin', 'hashedpass', UserRole.ADMIN);
+      const adminUser = new User(
+        2,
+        'admin',
+        'hashedpass',
+        UserRole.ADMIN,
+        'admin@test.com',
+        'admin User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
+      );
       mockValidateUserUseCase.execute.mockResolvedValue(adminUser);
 
       // Act
@@ -123,6 +151,15 @@ describe('LocalStrategy', () => {
         'assistant',
         'hashedpass',
         UserRole.ASSISTANT,
+        'assistant@test.com',
+        'assistant User',
+        true,
+        undefined,
+        undefined,
+        undefined,
+        new Date(),
+        new Date(),
+        new Date(),
       );
       mockValidateUserUseCase.execute.mockResolvedValue(assistantUser);
 
@@ -196,6 +233,7 @@ describe('LocalStrategy', () => {
         UserRole.USER,
         'test@example.com',
         'Test User',
+        true,
         'refresh-token',
         'web-token',
         'windows-token',
