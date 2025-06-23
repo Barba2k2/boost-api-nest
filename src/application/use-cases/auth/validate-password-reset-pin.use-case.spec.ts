@@ -69,6 +69,7 @@ describe('ValidatePasswordResetPinUseCase', () => {
       UserRole.USER,
       'test@example.com',
       'Test User',
+      true,
       undefined,
       undefined,
       undefined,
@@ -237,6 +238,7 @@ describe('ValidatePasswordResetPinUseCase', () => {
         UserRole.USER,
         'test@example.com',
         'Test User',
+        true,
       );
       const validCommand: ValidatePasswordResetPinCommand = {
         emailOrNickname: 'test@example.com',
