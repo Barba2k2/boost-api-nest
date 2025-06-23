@@ -70,14 +70,7 @@ describe('CreateUserUseCase', () => {
       role: UserRole.USER,
     };
 
-    const mockUser = new User(
-      1,
-      'testuser',
-      'hashedpassword',
-      UserRole.USER,
-      'test@example.com',
-      'Test User',
-    );
+    const mockUser = new User(1, 'testuser', 'hashedpassword', UserRole.USER, 'test@example.com', 'Test User', true);
 
     it('deve criar um usuário USER e também um streamer', async () => {
       // Arrange
@@ -104,14 +97,7 @@ describe('CreateUserUseCase', () => {
     it('deve criar um usuário ADMIN e também um streamer', async () => {
       // Arrange
       const adminCommand = { ...validCommand, role: UserRole.ADMIN };
-      const adminUser = new User(
-        1,
-        'testuser',
-        'hashedpassword',
-        UserRole.ADMIN,
-        'test@example.com',
-        'Test User',
-      );
+      const adminUser = new User(1, 'testuser', 'hashedpassword', UserRole.ADMIN, 'test@example.com', 'Test User', true);
 
       userRepository.existsByNickname.mockResolvedValue(false);
       userRepository.existsByEmail.mockResolvedValue(false);
@@ -136,14 +122,7 @@ describe('CreateUserUseCase', () => {
     it('deve criar apenas usuário ASSISTANT sem streamer', async () => {
       // Arrange
       const assistantCommand = { ...validCommand, role: UserRole.ASSISTANT };
-      const assistantUser = new User(
-        1,
-        'testuser',
-        'hashedpassword',
-        UserRole.ASSISTANT,
-        'test@example.com',
-        'Test User',
-      );
+      const assistantUser = new User(1, 'testuser', 'hashedpassword', UserRole.ASSISTANT, 'test@example.com', 'Test User', true);
 
       userRepository.existsByNickname.mockResolvedValue(false);
       userRepository.existsByEmail.mockResolvedValue(false);
