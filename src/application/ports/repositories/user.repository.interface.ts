@@ -29,6 +29,7 @@ export interface IUserRepository {
   findByNickname(nickname: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   findByEmailOrNickname(emailOrNickname: string): Promise<User | null>;
+  findByFullName(fullName: string): Promise<User[]>;
   updateTokens(id: number, tokens: UpdateTokensData): Promise<User>;
   updateLastLogin(id: number): Promise<User>;
   updatePassword(id: number, hashedPassword: string): Promise<User>;
@@ -37,4 +38,5 @@ export interface IUserRepository {
   existsByEmail(email: string): Promise<boolean>;
   findUsersWithLogin(limit: number, offset: number): Promise<User[]>;
   countUsersWithLogin(): Promise<number>;
+  findAll(): Promise<User[]>;
 }
