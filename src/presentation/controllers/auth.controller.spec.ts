@@ -38,6 +38,7 @@ describe('AuthController', () => {
     UserRole.USER,
     'test@example.com',
     'Test User',
+    true,
     'refresh-token',
     'web-token',
     'windows-token',
@@ -229,6 +230,7 @@ describe('AuthController', () => {
         UserRole.ADMIN,
         'admin@example.com',
         'Admin User',
+        true,
         undefined,
         undefined,
         undefined,
@@ -271,7 +273,10 @@ describe('AuthController', () => {
       });
 
       // Act
-      const mockReq = {};
+      const mockReq = {
+        headers: { 'user-agent': 'test-agent' },
+        ip: '127.0.0.1',
+      };
       const result = await controller.login(loginDto, mockReq);
 
       // Assert
@@ -306,7 +311,10 @@ describe('AuthController', () => {
       mockValidateUserUseCase.execute.mockRejectedValue(error);
 
       // Act & Assert
-      const mockReq = {};
+      const mockReq = {
+        headers: { 'user-agent': 'test-agent' },
+        ip: '127.0.0.1',
+      };
       await expect(controller.login(loginDto, mockReq)).rejects.toThrow(
         'Credenciais inválidas',
       );
