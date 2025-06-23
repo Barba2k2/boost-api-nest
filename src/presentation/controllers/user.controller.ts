@@ -1,8 +1,13 @@
 import { ChangePasswordUseCase } from '@application/use-cases/user/change-password.use-case';
 import { CreateUserUseCase } from '@application/use-cases/user/create-user.use-case';
-import { GetUserByIdUseCase } from '@application/use-cases/user/get-user-by-id.use-case';
+import { GetAllUsersUseCase } from '@application/use-cases/user/get-all-users.use-case';
+import {
+  GetUserByIdUseCase,
+  GetUsersByFullNameUseCase,
+} from '@application/use-cases/user/get-user-by-id.use-case';
 import { UpdateProfileUseCase } from '@application/use-cases/user/update-profile.use-case';
 import { UpdateUserTokensUseCase } from '@application/use-cases/user/update-user-tokens.use-case';
+import { UserRole } from '@domain/entities/user.entity';
 import {
   Body,
   Controller,
@@ -34,6 +39,7 @@ import {
   RateLimit,
   RateLimitInterceptor,
 } from '../../infrastructure/cache/interceptors/rate-limit.interceptor';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('users')
@@ -45,6 +51,8 @@ export class UserController {
     private readonly updateUserTokensUseCase: UpdateUserTokensUseCase,
     private readonly updateProfileUseCase: UpdateProfileUseCase,
     private readonly changePasswordUseCase: ChangePasswordUseCase,
+    private readonly getAllUsersUseCase: GetAllUsersUseCase,
+    private readonly getUsersByFullNameUseCase: GetUsersByFullNameUseCase,
   ) {}
 
   @Post()
@@ -181,5 +189,38 @@ export class UserController {
       updateTokensDto,
     );
     return UserResponseDto.fromDomain(user);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Listar todos os usuários (admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuários.',
+    type: [UserResponseDto],
+  })
+  @ApiResponse({ status: 403, description: 'Acesso negado.' })
+  async findAll(): Promise<UserResponseDto[]> {
+    const users = await this.getAllUsersUseCase.execute();
+    return users.map(UserResponseDto.fromDomain);
+  }
+
+  @Get('search')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Buscar usuários por nome completo (admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuários encontrados.',
+    type: [UserResponseDto],
+  })
+  @ApiResponse({ status: 403, description: 'Acesso negado.' })
+  async findByFullName(@Param() params: any): Promise<UserResponseDto[]> {
+    const fullName = params.fullName || '';
+    const users = await this.getUsersByFullNameUseCase.execute(fullName);
+    return users.map(UserResponseDto.fromDomain);
   }
 }
