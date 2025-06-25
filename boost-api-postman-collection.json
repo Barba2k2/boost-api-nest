@@ -1,0 +1,1176 @@
+{
+  "info": {
+    "name": "Boost API - NestJS",
+    "description": "Collection completa da API Boost desenvolvida em NestJS. Inclui endpoints para autenticação, recuperação de senha, gerenciamento de usuários, streamers e sistema de pontuação.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "streamer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Registrar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"João Silva\",\n  \"nickname\": \"joaosilva\",\n  \"email\": \"joao@example.com\",\n  \"password\": \"MinhaSenh@123\",\n  \"confirmPassword\": \"MinhaSenh@123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refresh_token);",
+                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"password\": \"MinhaSenh@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Renovar Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh/:id",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh", ":id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logs de Login (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/login-logs?limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login-logs"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔓 Recuperação de Senha",
+      "item": [
+        {
+          "name": "1. Iniciar Recuperação",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response tem success true', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response tem mensagem', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/initiate",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "initiate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Validar PIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.valid && response.token) {",
+                  "        pm.collectionVariables.set('reset_token', response.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Response tem valid boolean', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.valid).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "pm.test('Se válido, response tem token', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.valid) {",
+                  "        pm.expect(response.token).to.be.a('string');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"pin\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/validate-pin",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "validate-pin"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Completar Reset",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response tem success true', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response tem mensagem de sucesso', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('sucesso');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"resetToken\": \"{{reset_token}}\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"NovaSenh@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/complete",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "complete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "❌ Validar PIN Inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"pin\": \"999999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/validate-pin",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "validate-pin"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "❌ Reset com Token Inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"resetToken\": \"token-invalido\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"NovaSenh@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/complete",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "complete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "❌ Reset com Senhas Diferentes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrNickname\": \"joao@example.com\",\n  \"resetToken\": \"{{reset_token}}\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"SenhaDiferente@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset/complete",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset", "complete"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 Usuário (USER)",
+      "item": [
+        {
+          "name": "👤 Ver Meu Perfil",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Editar Meu Perfil",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"João Silva Santos\",\n  \"nickname\": \"joaosilva2025\",\n  \"email\": \"joao.novo@example.com\",\n  \"phone\": \"+55 11 99999-9999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🔐 Alterar Minha Senha",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"MinhaSenh@123\",\n  \"newPassword\": \"NovaSenh@456\",\n  \"confirmPassword\": \"NovaSenh@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/password",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🎮 Editar Meus Dados de Streamer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platforms\": [\"twitch\", \"youtube\"],\n  \"streamDays\": [\"monday\", \"wednesday\", \"friday\", \"saturday\"],\n  \"startTime\": \"19:00\",\n  \"endTime\": \"23:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/streamers/me",
+              "host": ["{{base_url}}"],
+              "path": ["streamers", "me"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔑 Administração (ADMIN)",
+      "item": [
+        {
+          "name": "Listar Todos os Usuários (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Maria Santos\",\n  \"nickname\": \"mariasantos\",\n  \"email\": \"maria@example.com\",\n  \"password\": \"MinhaSenh@123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Usuário por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Tokens do Usuário",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessToken\": \"novo_access_token\",\n  \"refreshToken\": \"novo_refresh_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:id/tokens",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id", "tokens"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logs de Login (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/login-logs?limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login-logs"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "🎬 Streamers",
+          "item": [
+            {
+              "name": "Listar Todos os Streamers",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/streamers",
+                  "host": ["{{base_url}}"],
+                  "path": ["streamers"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Streamers Online",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/streamers/online",
+                  "host": ["{{base_url}}"],
+                  "path": ["streamers", "online"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Atualizar Streamer",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nickname\": \"meu_nick_twitch\",\n  \"platforms\": [\"twitch\", \"youtube\", \"tiktok\"],\n  \"streamDays\": [\"monday\", \"tuesday\", \"wednesday\", \"friday\"],\n  \"startTime\": \"20:00\",\n  \"endTime\": \"00:00\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/streamers/:id}",
+                  "host": ["{{base_url}}"],
+                  "path": ["streamers", ":id}"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Atualizar Status Online",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"isOnline\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/streamers/:id}/status",
+                  "host": ["{{base_url}}"],
+                  "path": ["streamers", ":id}", "status"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "🏆 Sistema de Pontuação",
+          "item": [
+            {
+              "name": "Criar Score (Privado)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"streamerId\": 2,\n  \"date\": \"2025-04-29\",\n  \"hour\": 18,\n  \"minute\": 50,\n  \"points\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/scores",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Consultar Pontos Diários (Privado)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scores/daily-points/:id}?date=2025-01-04",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "daily-points", ":id}"],
+                  "query": [
+                    {
+                      "key": "date",
+                      "value": "2025-01-04",
+                      "description": "Data no formato YYYY-MM-DD (opcional)"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Consultar Pontos Diários (Público)",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scores/public/daily-points/:id}?date=2025-01-04",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "public", "daily-points", ":id}"],
+                  "query": [
+                    {
+                      "key": "date",
+                      "value": "2025-01-04",
+                      "description": "Data no formato YYYY-MM-DD (opcional)"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Relatório de Pontos por Período (Privado)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scores/report/:id}?startDate=2025-01-01&endDate=2025-01-07",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "report", ":id}"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-01",
+                      "description": "Data de início do período (formato: YYYY-MM-DD)"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-07",
+                      "description": "Data de fim do período (formato: YYYY-MM-DD)"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Pontos por Hora - Painel Admin (Privado)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scores/by-hour?date=2025-01-07",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "by-hour"],
+                  "query": [
+                    {
+                      "key": "date",
+                      "value": "2025-01-07",
+                      "description": "Data no formato YYYY-MM-DD (opcional)"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🌐 Ranking Semanal (Público)",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scores/public/weekly-ranking?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "public", "weekly-ranking"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início da semana (Segunda-feira) - Opcional, usa semana atual se não informado"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim da semana (Sábado) - Opcional, usa semana atual se não informado"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🌐 Média Semanal de Streamer (Público)",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scores/public/weekly-average/:id}?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "public", "weekly-average", ":id}"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início da semana (Segunda-feira) - Opcional, usa semana atual se não informado"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim da semana (Sábado) - Opcional, usa semana atual se não informado"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🌐 Pontos Diários da Semana (Público)",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scores/public/daily-week?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "public", "daily-week"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início da semana (Segunda-feira) - Opcional, usa semana atual se não informado"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim da semana (Sábado) - Opcional, usa semana atual se não informado"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🌐 Relatório de Pontos por Período (Público)",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scores/public/report/:id}?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "public", "report", ":id}"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início do período (formato: YYYY-MM-DD)"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim do período (formato: YYYY-MM-DD)"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🌐 PÚBLICO - Relatório por Nickname/Canal",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/scores/public/report-by-nickname/:nickname?startDateTime=2025-01-06T20:00:00&endDateTime=2025-01-11T23:59:59",
+                  "host": ["{{base_url}}"],
+                  "path": [
+                    "scores",
+                    "public",
+                    "report-by-nickname",
+                    ":nickname"
+                  ],
+                  "query": [
+                    {
+                      "key": "startDateTime",
+                      "value": "2025-01-06T20:00:00",
+                      "description": "Data e hora de início (formato: YYYY-MM-DDTHH:mm:ss) - Obrigatório"
+                    },
+                    {
+                      "key": "endDateTime",
+                      "value": "2025-01-11T23:59:59",
+                      "description": "Data e hora de fim (formato: YYYY-MM-DDTHH:mm:ss) - Obrigatório"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "nickname",
+                      "value": "aggeotv",
+                      "description": "Nickname/canal do streamer"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🔒 ADMIN - Ranking Semanal (Privado)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scores/admin/weekly-ranking?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "admin", "weekly-ranking"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início da semana (Segunda-feira) - Obrigatório"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim da semana (Sábado) - Obrigatório"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🔒 ADMIN - Média Semanal de Streamer (Privado)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scores/admin/weekly-average/:id}?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "admin", "weekly-average", ":id}"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início da semana (Segunda-feira) - Obrigatório"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim da semana (Sábado) - Obrigatório"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🔒 ADMIN - Pontos Diários da Semana (Privado)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scores/admin/daily-week?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "admin", "daily-week"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início da semana (Segunda-feira) - Obrigatório"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim da semana (Sábado) - Obrigatório"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "🔒 ADMIN - Resumo Completo de Período (Privado)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/scores/admin/period-summary?startDate=2025-01-06&endDate=2025-01-11",
+                  "host": ["{{base_url}}"],
+                  "path": ["scores", "admin", "period-summary"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "2025-01-06",
+                      "description": "Data de início do período - Obrigatório"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "2025-01-11",
+                      "description": "Data de fim do período - Obrigatório"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Buscar Usuários por Nome (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/search?fullName=João",
+              "host": ["{{base_url}}"],
+              "path": ["users", "search"],
+              "query": [
+                {
+                  "key": "fullName",
+                  "value": "João"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Exemplos de Teste",
+      "item": [
+        {
+          "name": "Workflow Completo - Registro e Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Teste Workflow\",\n  \"nickname\": \"testeworkflow\",\n  \"email\": \"teste@workflow.com\",\n  \"password\": \"TesteWorkflow@123\",\n  \"confirmPassword\": \"TesteWorkflow@123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Teste de Rate Limit - Score",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"streamerId\": 2,\n  \"date\": \"2025-04-29\",\n  \"hour\": 18,\n  \"minute\": 50,\n  \"points\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/scores",
+              "host": ["{{base_url}}"],
+              "path": ["scores"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Teste Limite Diário - 240 Pontos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"streamerId\": 2,\n  \"date\": \"2025-04-29\",\n  \"hour\": 18,\n  \"minute\": 50,\n  \"points\": 241\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/scores",
+              "host": ["{{base_url}}"],
+              "path": ["scores"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-refresh token if needed",
+          "const accessToken = pm.collectionVariables.get('access_token');",
+          "if (!accessToken && pm.request.url.path.join('/') !== 'auth/login' && pm.request.url.path.join('/') !== 'auth/register') {",
+          "    console.log('⚠️  Token de acesso não encontrado. Execute o login primeiro.');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global response logging",
+          "if (pm.response.code >= 400) {",
+          "    console.log('❌ Erro na requisição:', pm.response.status, pm.response.text());",
+          "} else {",
+          "    console.log('✅ Sucesso:', pm.response.status, pm.info.requestName);",
+          "}"
+        ]
+      }
+    }
+  ]
+}

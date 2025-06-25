@@ -1,0 +1,9 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "typescript.preferences.importModuleSpecifier": "non-relative"
+}

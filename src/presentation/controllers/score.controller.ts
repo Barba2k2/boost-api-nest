@@ -1,0 +1,200 @@
+import { CreateScoreUseCase } from '@application/use-cases/streamer/create-score.use-case';
+import { GetDailyPointsUseCase } from '@application/use-cases/streamer/get-daily-points.use-case';
+import { GetScoreReportUseCase } from '@application/use-cases/streamer/get-score-report.use-case';
+import { GetScoresByHourUseCase } from '@application/use-cases/streamer/get-scores-by-hour.use-case';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CreateScoreDto } from '@presentation/dto/streamer/create-score.dto';
+import { DailyPointsResponseDto } from '@presentation/dto/streamer/daily-points-response.dto';
+import { ScoreReportResponseDto } from '@presentation/dto/streamer/score-report-response.dto';
+import { ScoreResponseDto } from '@presentation/dto/streamer/score-response.dto';
+import { ScoresByHourResponseDto } from '@presentation/dto/streamer/scores-by-hour-response.dto';
+import { ScoreRateLimitInterceptor } from '../../infrastructure/cache/interceptors/score-rate-limit.interceptor';
+import { DateValidationUtil } from '../utils/date-validation.util';
+
+@ApiTags('scores')
+@Controller('scores')
+export class ScoreController {
+  constructor(
+    private readonly createScoreUseCase: CreateScoreUseCase,
+    private readonly getDailyPointsUseCase: GetDailyPointsUseCase,
+    private readonly getScoreReportUseCase: GetScoreReportUseCase,
+    private readonly getScoresByHourUseCase: GetScoresByHourUseCase,
+  ) {}
+
+  @Post()
+  @UseInterceptors(ScoreRateLimitInterceptor)
+  @ApiOperation({
+    summary: '🔒 PRIVADO - Criar um novo score para um streamer',
+    description:
+      'Endpoint privado que requer autenticação JWT. Usado pelo sistema interno para registrar pontuações dos streamers.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Score criado com sucesso.',
+    type: ScoreResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Limite diário de 240 pontos excedido ou dados inválidos.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token JWT inválido ou não fornecido.',
+  })
+  @ApiResponse({
+    status: 429,
+    description:
+      'Limite de criação excedido. Máximo 1 score a cada 6 minutos por streamer.',
+  })
+  async create(
+    @Body() createScoreDto: CreateScoreDto,
+  ): Promise<ScoreResponseDto> {
+    const date = DateValidationUtil.parseAndValidateDate(createScoreDto.date);
+
+    const score = await this.createScoreUseCase.execute({
+      streamerId: createScoreDto.streamerId,
+      date,
+      hour: createScoreDto.hour,
+      minute: createScoreDto.minute,
+      points: createScoreDto.points,
+    });
+
+    return ScoreResponseDto.fromDomain(score);
+  }
+
+  @Get('daily-points/:streamerId')
+  @ApiOperation({
+    summary: '🔒 PRIVADO - Consultar pontos diários de um streamer',
+    description:
+      'Endpoint privado que requer autenticação JWT. Usado pelo painel administrativo para visualizar dados detalhados.',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    description:
+      'Data para consulta (formato: YYYY-MM-DD). Se não informado, usa a data atual.',
+    example: '2025-01-04',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Pontos diários consultados com sucesso.',
+    type: DailyPointsResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token JWT inválido ou não fornecido.',
+  })
+  async getDailyPoints(
+    @Param('streamerId', ParseIntPipe) streamerId: number,
+    @Query('date') dateString?: string,
+  ): Promise<DailyPointsResponseDto> {
+    let date: Date | undefined;
+
+    if (dateString) {
+      date = DateValidationUtil.parseAndValidateDate(dateString);
+    }
+
+    const result = await this.getDailyPointsUseCase.execute({
+      streamerId,
+      date,
+    });
+
+    return DailyPointsResponseDto.fromDomain(result);
+  }
+
+  @Get('report/:streamerId')
+  @ApiOperation({
+    summary: '🔒 PRIVADO - Relatório de pontos por período',
+    description:
+      'Endpoint privado que requer autenticação JWT. Usado pelo painel administrativo para relatórios detalhados de streamers.',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: true,
+    description: 'Data de início do período (formato: YYYY-MM-DD)',
+    example: '2025-01-01',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: true,
+    description: 'Data de fim do período (formato: YYYY-MM-DD)',
+    example: '2025-01-31',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Relatório consultado com sucesso.',
+    type: ScoreReportResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token JWT inválido ou não fornecido.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Streamer não encontrado.',
+  })
+  async getScoreReport(
+    @Param('streamerId', ParseIntPipe) streamerId: number,
+    @Query('startDate') startDateString: string,
+    @Query('endDate') endDateString: string,
+  ): Promise<ScoreReportResponseDto> {
+    const { startDate, endDate } = DateValidationUtil.parseAndValidateDateRange(
+      startDateString,
+      endDateString,
+    );
+
+    const result = await this.getScoreReportUseCase.execute({
+      streamerId,
+      startDate,
+      endDate,
+    });
+
+    return ScoreReportResponseDto.fromDomain(result);
+  }
+
+  @Get('by-hour')
+  @ApiOperation({
+    summary: '🔒 PRIVADO - Consultar scores agrupados por hora',
+    description:
+      'Endpoint privado que requer autenticação JWT. Usado pelo painel administrativo para análise de distribuição de pontos por horário.',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    description:
+      'Data para consulta (formato: YYYY-MM-DD). Se não informado, usa a data atual.',
+    example: '2025-01-04',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Scores por hora consultados com sucesso.',
+    type: ScoresByHourResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token JWT inválido ou não fornecido.',
+  })
+  async getScoresByHour(
+    @Query('date') dateString?: string,
+  ): Promise<ScoresByHourResponseDto> {
+    let date: Date | undefined;
+
+    if (dateString) {
+      date = DateValidationUtil.parseAndValidateDate(dateString);
+    }
+
+    const result = await this.getScoresByHourUseCase.execute({ date });
+
+    return ScoresByHourResponseDto.fromDomain(result);
+  }
+}
